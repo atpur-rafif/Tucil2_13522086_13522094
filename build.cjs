@@ -41,7 +41,9 @@ const reload = () => {
 fs.mkdir(distDir, ignoreCallback)
 chokidar.watch(sourceDir)
 	.on("all", (eventName, source) => {
-		if (source.endsWith(".ts")) return
+
+		const ignore = ["ts", "tsx", "js", "jsx"]
+		if (ignore.reduce((prev, ext) => prev || source.endsWith(ext), false)) return
 
 		const relative = path.relative(sourceDir, source)
 		const dist = path.resolve(distDir, relative)
