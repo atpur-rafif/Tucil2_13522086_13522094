@@ -2,6 +2,7 @@ const chokidar = require("chokidar")
 const path = require("path")
 const fs = require("fs")
 const esbuild = require("esbuild")
+const http = require("http")
 
 const sourceDir = path.resolve(__dirname, "src")
 const distDir = path.resolve(__dirname, "dist")
@@ -14,14 +15,26 @@ function debug(value) {
 	console.log(value)
 }
 
-/** @type esbuild.Plugin */
-const esbuildDebug = {
-	name: "debug",
-	setup(build) {
-		build.onStart(() => {
-			debug("Rebuilding script...")
-		})
-	}
+// Autoreload
+
+/** @type http.ServerResponse[] */
+const clients = []
+const AUTORELOAD_PORT = 35729
+const autoreloadServer = http.createServer((req, res) => {
+	res.setHeader("Content-Type", "text/event-stream")
+	res.setHeader('Access-Control-Allow-Origin', req.headers.origin)
+	clients.push(res)
+	req.on("close", () => {
+		const idx = clients.indexOf(res)
+		clients.splice(idx, 1)
+	})
+})
+autoreloadServer.listen(AUTORELOAD_PORT)
+
+const reload = () => {
+	clients.forEach(client => {
+		client.write("event: reload\ndata: \n\n")
+	})
 }
 
 // Sync file
@@ -32,29 +45,43 @@ chokidar.watch(sourceDir)
 
 		const relative = path.relative(sourceDir, source)
 		const dist = path.resolve(distDir, relative)
-		const ignoreCallback = () => { }
+		const cb = () => { reload() }
 		if (eventName == "addDir") {
-			fs.mkdir(dist, ignoreCallback)
+			fs.mkdir(dist, cb)
 			if (source == sourceDir) debug("Created base directory")
 			else debug(`Created directory: ${relative}`)
 		} else if (eventName == "unlinkDir") {
-			fs.rmdir(dist, ignoreCallback)
+			fs.rmdir(dist, cb)
 			debug(`Removed directory: ${relative}`)
 		} else if (eventName == "add" || eventName == "change") {
-			fs.copyFile(source, dist, ignoreCallback)
+			fs.copyFile(source, dist, cb)
 			debug(`Copied file: ${relative}`)
 		} else if (eventName == "unlink") {
-			fs.unlink(dist, ignoreCallback)
+			fs.unlink(dist, cb)
 			debug(`Removed file: ${relative}`)
 		}
 	})
+
+/** @type esbuild.Plugin */
+const esbuildPlugin = {
+	name: "debug",
+	setup(build) {
+		build.onStart(() => {
+			debug("Rebuilding script...")
+		})
+
+		build.onEnd(() => {
+			reload()
+		})
+	}
+}
 
 // Server
 esbuild.context({
 	entryPoints: ["src/server/index.ts"],
 	format: "esm",
 	outdir: "dist/server",
-	plugins: [esbuildDebug]
+	plugins: [esbuildPlugin]
 }).then(ctx => {
 	ctx.watch()
 })
@@ -64,7 +91,7 @@ esbuild.context({
 	entryPoints: ["src/client/index.ts"],
 	bundle: true,
 	outdir: "dist/client",
-	plugins: [esbuildDebug]
+	plugins: [esbuildPlugin]
 }).then(ctx => {
 	ctx.watch()
 })
