@@ -1,11 +1,12 @@
 import http from "http"
 import path from "path"
 import fs from "fs"
+import { fileURLToPath } from "url"
 
 const hostname = "localhost"
-const port = 80;
+const port = 8080;
 
-const serverDir = __dirname
+const serverDir = path.dirname(fileURLToPath(import.meta.url))
 const clientDir = path.resolve(serverDir, "..", "client")
 
 const server = http.createServer((req, res) => {

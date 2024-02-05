@@ -1,6 +1,7 @@
 {
 	"name": "ts-cs-template",
 	"version": "1.0.0",
+	"type": "module",
 	"description": "",
 	"main": "dist/server/index.js",
 	"scripts": {
@@ -11,5 +12,8 @@
 	"dependencies": {
 		"chokidar": "^3.5.3",
 		"esbuild": "^0.20.0"
+	},
+	"devDependencies": {
+		"@types/node": "^20.11.16"
 	}
 }

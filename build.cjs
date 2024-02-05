@@ -54,7 +54,7 @@ chokidar.watch(sourceDir)
 // Server
 esbuild.context({
 	entryPoints: ["src/server/index.ts"],
-	format: "cjs",
+	format: "esm",
 	outdir: "dist/server",
 	plugins: [esbuildDebug]
 }).then(ctx => {
