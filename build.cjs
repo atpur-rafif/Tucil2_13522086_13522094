@@ -18,10 +18,8 @@ function debug(value) {
 const esbuildDebug = {
 	name: "debug",
 	setup(build) {
-		build.onResolve({
-			filter: new RegExp(".")
-		}, ({ path: filepath }) => {
-			debug(`Rebuilding: ${path.basename(filepath)}`)
+		build.onStart(() => {
+			debug("Rebuilding script...")
 		})
 	}
 }
