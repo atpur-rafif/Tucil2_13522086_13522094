@@ -1,3 +1,3 @@
-import { greeter } from "./module/greeter";
+import { greeter } from "./module/greeter.ts";
 
 greeter("World")

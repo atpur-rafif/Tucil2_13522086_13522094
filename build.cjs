@@ -14,6 +14,18 @@ function debug(value) {
 	console.log(value)
 }
 
+/** @type esbuild.Plugin */
+const esbuildDebug = {
+	name: "debug",
+	setup(build) {
+		build.onResolve({
+			filter: new RegExp(".")
+		}, ({ path: filepath }) => {
+			debug(`Rebuilding: ${path.basename(filepath)}`)
+		})
+	}
+}
+
 // Sync file
 fs.mkdir(distDir, ignoreCallback)
 chokidar.watch(sourceDir)
@@ -43,7 +55,8 @@ chokidar.watch(sourceDir)
 esbuild.context({
 	entryPoints: ["src/server/index.ts"],
 	format: "cjs",
-	outdir: "dist/server"
+	outdir: "dist/server",
+	plugins: [esbuildDebug]
 }).then(ctx => {
 	ctx.watch()
 })
@@ -52,7 +65,8 @@ esbuild.context({
 esbuild.context({
 	entryPoints: ["src/client/index.ts"],
 	bundle: true,
-	outdir: "dist/client"
+	outdir: "dist/client",
+	plugins: [esbuildDebug]
 }).then(ctx => {
 	ctx.watch()
 })
