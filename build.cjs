@@ -1,12 +1,12 @@
 const chokidar = require("chokidar")
 const path = require("path")
 const fs = require("fs")
+const esbuild = require("esbuild")
 
 const sourceDir = path.resolve(__dirname, "src")
 const distDir = path.resolve(__dirname, "dist")
 
 const ignoreCallback = () => { }
-fs.mkdir(distDir, ignoreCallback)
 
 const useDebug = true;
 function debug(value) {
@@ -14,8 +14,12 @@ function debug(value) {
 	console.log(value)
 }
 
+// Sync file
+fs.mkdir(distDir, ignoreCallback)
 chokidar.watch(sourceDir)
 	.on("all", (eventName, source) => {
+		if (source.endsWith(".ts")) return
+
 		const relative = path.relative(sourceDir, source)
 		const dist = path.resolve(distDir, relative)
 		const ignoreCallback = () => { }
@@ -34,3 +38,22 @@ chokidar.watch(sourceDir)
 			debug(`Removed file: ${relative}`)
 		}
 	})
+
+// Server
+esbuild.context({
+	entryPoints: ["src/server/index.ts"],
+	format: "cjs",
+	outdir: "dist/server"
+}).then(ctx => {
+	ctx.watch()
+})
+
+// Client
+esbuild.context({
+	entryPoints: ["src/client/index.ts"],
+	bundle: true,
+	outdir: "dist/client"
+}).then(ctx => {
+	ctx.watch()
+})
+
