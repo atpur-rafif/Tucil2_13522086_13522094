@@ -1,9 +1,6 @@
 import "./module/autoreload.ts";
 import { $ } from "./module/selector.ts";
 
-type Point = [number, number];
-type Path = Point[];
-
 class Canvas {
 	el: HTMLCanvasElement;
 	ctx: CanvasRenderingContext2D;
@@ -15,8 +12,7 @@ class Canvas {
 		this.ctx = this.el.getContext("2d") as CanvasRenderingContext2D;
 	}
 
-	drawPath(path: Path) {
-		console.log(path.length);
+	drawPath(path: any) {
 		this.ctx.beginPath();
 		for (let i = 0; i < path.length; ++i) {
 			this.ctx.lineTo(path[i][0], path[i][1]);
@@ -31,55 +27,108 @@ class Canvas {
 	}
 }
 
-function midPoint(a: Point, b: Point): Point {
-	return [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-}
+class Point {
+	x: number;
+	y: number;
 
-function bezzier(path: Path, iter: number): Path {
-	const count = path.length;
-	const result: Path = [];
-
-	function recur(p: Path, iter: number) {
-		if (iter == 0) return;
-
-		let l: Path = [];
-		let r: Path = [];
-		let c: Path = [...p];
-		let n: Path = [];
-
-		l.push(p[0]);
-		r.push(p[count - 1]);
-		for (let i = count - 1; i > 0; --i) {
-			for (let j = 0; j < i; ++j) {
-				let m = midPoint(c[j], c[j + 1]);
-				if (j == 0) l.push(m);
-				if (j == i - 1) r.push(m);
-				n.push(m);
-			}
-			c = [...n];
-			n = [];
-		}
-		r = r.reverse();
-
-		recur(l, iter - 1);
-		result.push(c[0]);
-		recur(r, iter - 1);
+	constructor(x: number, y: number) {
+		this.x = x;
+		this.y = y;
 	}
 
-	result.push(path[0]);
-	recur(path, iter);
-	result.push(path[count - 1]);
-
-	return result;
+	static midPoint(a: Point, b: Point): Point {
+		return new Point((a.x + b.x) / 2, (a.y + b.y) / 2);
+	}
 }
 
-const ctrlPoint: Path = [
-	[0, 0],
-	[200, 200],
-	[400, 0],
-];
+type LazyPath = [LazyPoint, Point, LazyPoint];
+class LazyPoint {
+	private computed: boolean;
+	control: Point[];
+	result: LazyPath;
+
+	constructor(control: Point[]) {
+		this.computed = false;
+		this.control = control;
+	}
+
+	getLeft() {
+		return this.control[0];
+	}
+
+	getRight() {
+		return this.control[this.control.length - 1];
+	}
+
+	get(): LazyPath {
+		if (this.computed) return this.result;
+		const count = this.control.length;
+
+		let left: Point[] = [];
+		let right: Point[] = [];
+		let current: Point[] = [...this.control];
+		let next: Point[] = [];
+
+		left.push(current[0]);
+		right.push(current[count - 1]);
+		for (let i = count - 1; i > 0; --i) {
+			for (let j = 0; j < i; ++j) {
+				const mid = Point.midPoint(current[j], current[j + 1]);
+				if (j == 0) left.push(mid);
+				if (j == i - 1) right.push(mid);
+				next.push(mid);
+			}
+			current = [...next];
+			next = [];
+		}
+		right = right.reverse();
+
+		this.computed = true;
+		this.result = [new LazyPoint(left), current[0], new LazyPoint(right)];
+		return this.result;
+	}
+}
+
+const randomRange = (l: number, r: number) =>
+	l + Math.floor(Math.random() * (r - l));
+const randomPoint = () => {
+	return new Point(randomRange(0, 400), randomRange(0, 400));
+};
+const randomPath = (len: number) =>
+	Array(len)
+		.fill(null)
+		.map(() => randomPoint());
+
+function traverse(lazy: LazyPoint, depth: number, accumulator: Point[]) {
+	if (depth == 0) return;
+	const [left, mid, right] = lazy.get();
+	traverse(left, depth - 1, accumulator);
+	accumulator.push(mid);
+	traverse(right, depth - 1, accumulator);
+}
+
+function bezzier(lazy: LazyPoint, depth: number): Point[] {
+	const accumulator: Point[] = [];
+	accumulator.push(lazy.getLeft());
+	traverse(lazy, depth, accumulator);
+	accumulator.push(lazy.getRight());
+	return accumulator;
+}
 
 const body = $("body");
 const canvas = new Canvas();
 body.appendChild(canvas.el);
-canvas.drawPath(bezzier(ctrlPoint, 5));
+
+let i = 1;
+let p = new LazyPoint(randomPath(20));
+const fn = () => {
+	canvas.clear();
+	canvas.drawPath(bezzier(p, i).map((v) => [v.x, v.y]));
+	if (++i < 8) setTimeout(fn, 300);
+	else {
+		i = 1;
+		p = new LazyPoint(randomPath(20));
+		setTimeout(fn, 500);
+	}
+};
+fn();
