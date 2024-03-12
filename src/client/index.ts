@@ -1,6 +1,6 @@
 import "./module/autoreload.ts";
 import { Canvas } from "./module/canvas.ts";
-import { $ } from "./module/selector.ts";
+import { $ } from "./module/util.ts";
 
 export class Point {
 	x: number;

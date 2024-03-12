@@ -1,4 +1,5 @@
 import { LazyPoint, Point, bezzier } from "..";
+import { styleElement } from "./util";
 
 type ControlPointState = {
 	x: number;
@@ -19,9 +20,11 @@ export class Canvas {
 	constructor() {
 		this.controlPoints = [];
 		this.el = document.createElement("div");
-		this.el.style.position = "relative";
-		this.el.style.userSelect = "none";
-		this.el.style.webkitUserSelect = "none";
+		styleElement(this.el, {
+			position: "relative",
+			userSelect: "none",
+			webkitUserSelect: "none",
+		});
 		this.canvas = document.createElement("canvas");
 		this.el.appendChild(this.canvas);
 		this.canvas.width = 500;
@@ -73,16 +76,18 @@ export class Canvas {
 		const y = pageY - elY;
 
 		const el = document.createElement("div");
-		el.style.width = "10px";
-		el.style.height = "10px";
-		el.style.backgroundColor = "black";
-		el.style.position = "absolute";
-		el.style.cursor = "pointer";
-		el.style.left = `${x}px`;
-		el.style.top = `${y}px`;
-		el.style.transform = "translate(-50%,-50%)";
-		el.style.borderRadius = "100%";
 		el.draggable = false;
+		styleElement(el, {
+			width: "10px",
+			height: "10px",
+			backgroundColor: "black",
+			position: "absolute",
+			cursor: "pointer",
+			left: `${x}px`,
+			top: `${y}px`,
+			transform: "translate(-50%,-50%)",
+			borderRadius: "100%",
+		});
 
 		const state: ControlPointState = {
 			x,
