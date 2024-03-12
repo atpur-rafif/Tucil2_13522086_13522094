@@ -62,7 +62,7 @@ export class Canvas {
 			this.ctx.lineTo(path[i].x, path[i].y);
 		}
 		this.ctx.lineWidth = 2;
-		this.ctx.strokeStyle = "white";
+		this.ctx.strokeStyle = "black";
 		this.ctx.stroke();
 	}
 
@@ -75,7 +75,7 @@ export class Canvas {
 		const el = document.createElement("div");
 		el.style.width = "10px";
 		el.style.height = "10px";
-		el.style.backgroundColor = "white";
+		el.style.backgroundColor = "black";
 		el.style.position = "absolute";
 		el.style.cursor = "pointer";
 		el.style.left = `${x}px`;
@@ -85,8 +85,8 @@ export class Canvas {
 		el.draggable = false;
 
 		const state: ControlPointState = {
-			x: 0,
-			y: 0,
+			x,
+			y,
 			dragged: false,
 		};
 
@@ -98,6 +98,8 @@ export class Canvas {
 				const y = pageY - elY;
 				el.style.left = `${x}px`;
 				el.style.top = `${y}px`;
+				state.x = x;
+				state.y = y;
 				this.constructBezier();
 			}
 		});
@@ -106,20 +108,14 @@ export class Canvas {
 		this.canvas.addEventListener("pointerup", () => (state.dragged = false));
 		this.el.addEventListener("pointerup", () => (state.dragged = false));
 		this.controlPoints.push([el, state] as [HTMLDivElement, ControlPointState]);
-		requestAnimationFrame(() => {
-			requestAnimationFrame(() => {
-				this.constructBezier();
-			});
-		});
+		this.constructBezier();
 
 		this.el.appendChild(el);
 	}
 
 	getControlPoints() {
-		const { x: elX, y: elY } = this.canvas.getBoundingClientRect();
-		return this.controlPoints.map(([div, _]) => {
-			const { x: pX, y: pY } = div.getBoundingClientRect();
-			return new Point(pX - elX, pY - elY);
+		return this.controlPoints.map(([_, { x, y }]) => {
+			return new Point(x, y);
 		});
 	}
 
