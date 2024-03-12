@@ -93,7 +93,3 @@ export function bezzier(lazy: LazyPoint, depth: number): Point[] {
 const body = $("body");
 const canvas = new Canvas();
 body.appendChild(canvas.el);
-
-canvas.clear();
-let p = new LazyPoint(randomPath(5));
-canvas.drawPath(bezzier(p, 5).map((v) => [v.x, v.y]));
