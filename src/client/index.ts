@@ -1,33 +1,8 @@
 import "./module/autoreload.ts";
+import { Canvas } from "./module/canvas.ts";
 import { $ } from "./module/selector.ts";
 
-class Canvas {
-	el: HTMLCanvasElement;
-	ctx: CanvasRenderingContext2D;
-
-	constructor() {
-		this.el = document.createElement("canvas");
-		this.el.width = 500;
-		this.el.height = 500;
-		this.ctx = this.el.getContext("2d") as CanvasRenderingContext2D;
-	}
-
-	drawPath(path: any) {
-		this.ctx.beginPath();
-		for (let i = 0; i < path.length; ++i) {
-			this.ctx.lineTo(path[i][0], path[i][1]);
-		}
-		this.ctx.lineWidth = 2;
-		this.ctx.strokeStyle = "white";
-		this.ctx.stroke();
-	}
-
-	clear() {
-		this.ctx.clearRect(0, 0, this.el.width, this.el.height);
-	}
-}
-
-class Point {
+export class Point {
 	x: number;
 	y: number;
 
@@ -42,7 +17,7 @@ class Point {
 }
 
 type LazyPath = [LazyPoint, Point, LazyPoint];
-class LazyPoint {
+export class LazyPoint {
 	private computed: boolean;
 	control: Point[];
 	result: LazyPath;
@@ -107,7 +82,7 @@ function traverse(lazy: LazyPoint, depth: number, accumulator: Point[]) {
 	traverse(right, depth - 1, accumulator);
 }
 
-function bezzier(lazy: LazyPoint, depth: number): Point[] {
+export function bezzier(lazy: LazyPoint, depth: number): Point[] {
 	const accumulator: Point[] = [];
 	accumulator.push(lazy.getLeft());
 	traverse(lazy, depth, accumulator);
@@ -119,16 +94,6 @@ const body = $("body");
 const canvas = new Canvas();
 body.appendChild(canvas.el);
 
-let i = 1;
-let p = new LazyPoint(randomPath(20));
-const fn = () => {
-	canvas.clear();
-	canvas.drawPath(bezzier(p, i).map((v) => [v.x, v.y]));
-	if (++i < 8) setTimeout(fn, 300);
-	else {
-		i = 1;
-		p = new LazyPoint(randomPath(20));
-		setTimeout(fn, 500);
-	}
-};
-fn();
+canvas.clear();
+let p = new LazyPoint(randomPath(5));
+canvas.drawPath(bezzier(p, 5).map((v) => [v.x, v.y]));
