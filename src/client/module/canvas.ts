@@ -1,5 +1,5 @@
 import { LazyPoint, Point, bezzier } from "..";
-import { styleElement } from "./util";
+import { createElement, styleElement } from "./util";
 
 type ControlPointState = {
 	x: number;
@@ -7,37 +7,44 @@ type ControlPointState = {
 	dragged: boolean;
 };
 
+const animated = true;
+
 export class Canvas {
 	iteration: number;
-	el: HTMLDivElement;
 	timeoutId: number;
 	lazyPoint: LazyPoint;
-	canvas: HTMLCanvasElement;
 	ctx: CanvasRenderingContext2D;
 
-	controlPoints: [HTMLDivElement, ControlPointState][];
+	el: HTMLDivElement;
+	canvas: HTMLCanvasElement;
+	animationOption: HTMLSelectElement;
+
+	controlElements: [HTMLDivElement, ControlPointState][];
+	controlPoints: Point[];
 
 	constructor() {
+		this.iteration = 0;
+		this.controlElements = [];
 		this.controlPoints = [];
-		this.el = document.createElement("div");
+		this.el = createElement("div");
 		styleElement(this.el, {
 			position: "relative",
 			userSelect: "none",
 			webkitUserSelect: "none",
 		});
-		this.canvas = document.createElement("canvas");
+		this.canvas = createElement("canvas", {
+			width: 500,
+			height: 500,
+		});
 		this.el.appendChild(this.canvas);
-		this.canvas.width = 500;
-		this.canvas.height = 500;
 		this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
 		this.canvas.addEventListener("click", this.onClick.bind(this));
-		this.iteration = 0;
 	}
 
 	constructBezier() {
-		const controlPoints = this.getControlPoints();
-		this.lazyPoint = new LazyPoint(controlPoints);
-		this.iteration = 0;
+		this.controlPoints = this.getControlPoints();
+		this.lazyPoint = new LazyPoint(this.controlPoints);
+		this.iteration = 3;
 
 		const max = 7;
 		clearTimeout(this.timeoutId);
@@ -48,10 +55,7 @@ export class Canvas {
 
 			if (this.iteration < max) this.timeoutId = setTimeout(fn, 300) as any;
 		};
-
-		this.clear();
-		this.drawPath(controlPoints);
-		this.timeoutId = setTimeout(fn, 300) as any;
+		fn();
 	}
 
 	drawBezier() {
@@ -75,8 +79,9 @@ export class Canvas {
 		const x = pageX - elX;
 		const y = pageY - elY;
 
-		const el = document.createElement("div");
-		el.draggable = false;
+		const el = createElement("div", {
+			draggable: false,
+		});
 		styleElement(el, {
 			width: "10px",
 			height: "10px",
@@ -101,25 +106,49 @@ export class Canvas {
 				const { x: pageX, y: pageY } = ev;
 				const x = pageX - elX;
 				const y = pageY - elY;
-				el.style.left = `${x}px`;
-				el.style.top = `${y}px`;
+				styleElement(el, {
+					left: `${x}px`,
+					top: `${y}px`,
+				});
 				state.x = x;
 				state.y = y;
-				this.constructBezier();
+				this.controlPoints = this.getControlPoints();
+				clearTimeout(this.timeoutId);
+				if (animated) {
+					this.constructBezier();
+					// this.drawPath(this.controlPoints);
+				} else {
+					this.clear();
+					this.drawPath(bezzier(new LazyPoint(this.controlPoints), 5));
+				}
 			}
 		});
 
 		el.addEventListener("pointerdown", () => (state.dragged = true));
-		this.canvas.addEventListener("pointerup", () => (state.dragged = false));
-		this.el.addEventListener("pointerup", () => (state.dragged = false));
-		this.controlPoints.push([el, state] as [HTMLDivElement, ControlPointState]);
-		this.constructBezier();
+		this.canvas.addEventListener("pointerup", () => {
+			state.dragged = false;
+			if (animated) this.constructBezier();
+		});
+		this.el.addEventListener("pointerup", () => {
+			state.dragged = false;
+			if (animated) this.constructBezier();
+		});
+		this.controlElements.push([el, state] as [
+			HTMLDivElement,
+			ControlPointState,
+		]);
+		this.clear();
+		this.controlPoints = this.getControlPoints();
+		if (animated) this.constructBezier();
+		else {
+			this.drawPath(bezzier(new LazyPoint(this.controlPoints), 5));
+		}
 
 		this.el.appendChild(el);
 	}
 
 	getControlPoints() {
-		return this.controlPoints.map(([_, { x, y }]) => {
+		return this.controlElements.map(([_, { x, y }]) => {
 			return new Point(x, y);
 		});
 	}
