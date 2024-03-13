@@ -31,14 +31,25 @@ export class Canvas {
 			position: "relative",
 			userSelect: "none",
 			webkitUserSelect: "none",
+			height: "100vh",
+			width: "100vw",
 		});
-		this.canvas = createElement("canvas", {
-			width: 500,
-			height: 500,
+		this.canvas = createElement("canvas");
+		styleElement(this.canvas, {
+			backgroundColor: "lightblue",
 		});
 		this.el.appendChild(this.canvas);
 		this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
 		this.canvas.addEventListener("click", this.onClick.bind(this));
+
+		window.addEventListener("resize", this.resizeCanvas.bind(this));
+		this.resizeCanvas();
+	}
+
+	resizeCanvas() {
+		this.canvas.width = window.innerWidth;
+		this.canvas.height = window.innerHeight;
+		if (this.controlPoints.length > 1) this.constructBezier();
 	}
 
 	constructBezier() {
