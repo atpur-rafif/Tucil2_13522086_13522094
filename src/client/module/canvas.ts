@@ -59,7 +59,7 @@ export class Canvas {
 	constructBezier() {
 		if (this.controlPoints.length <= 1) return;
 		this.lazyPoint = new LazyPoint(this.getControlPoints());
-		this.iteration = 3;
+		this.iteration = 0;
 
 		const max = 7;
 		clearTimeout(this.timeoutId);
@@ -98,6 +98,7 @@ export class Canvas {
 		controlPoint.setPosition(x, y);
 		controlPoint.attach();
 		this.controlPoints.push(controlPoint);
+		this.constructBezier();
 	}
 
 	getControlPoints() {
