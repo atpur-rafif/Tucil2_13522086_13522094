@@ -1,6 +1,7 @@
-import { Point } from "..";
+import { Point } from "./point";
 import { Canvas } from "./canvas";
 import { createElement, styleElement } from "./util";
+import style from "./style.module.css";
 
 export class ControlPoint {
 	parent: Canvas;
@@ -13,19 +14,11 @@ export class ControlPoint {
 		this.dragged = false;
 		this.position = new Point(0, 0);
 
-		this.el = createElement("div", {
-			draggable: false,
-		});
+		this.el = createElement("div", { draggable: false });
+		this.el.classList.add(style.controlPoint);
 		styleElement(this.el, {
-			width: "10px",
-			height: "10px",
-			backgroundColor: "black",
-			position: "absolute",
-			cursor: "pointer",
 			left: `${this.position.x}px`,
 			top: `${this.position.y}px`,
-			transform: "translate(-50%,-50%)",
-			borderRadius: "100%",
 		});
 	}
 
@@ -43,12 +36,20 @@ export class ControlPoint {
 		this.parent.el.removeChild(this.el);
 	}
 
+	moved: boolean = false;
 	onPointerDown = () => {
+		if (this.parent.settings.deleteMode) {
+			this.parent.removeControlPoint(this);
+			return;
+		}
 		this.dragged = true;
+		this.moved = false;
 	};
 
 	onPointerUp = () => {
 		this.dragged = false;
+		this.parent.onControlPointFinishedChange(this.moved);
+		this.moved = false;
 	};
 
 	onPointerMove = (ev: MouseEvent) => {
@@ -57,8 +58,9 @@ export class ControlPoint {
 		const { x: pageX, y: pageY } = ev;
 		const x = pageX - elX;
 		const y = pageY - elY;
+		this.moved = true;
 		this.setPosition(x, y);
-		this.parent.constructBezier();
+		this.parent.onControlPointChange();
 	};
 
 	setPosition(x: number, y: number) {
