@@ -51,7 +51,7 @@ export class ControlPoint {
 		const x = pageX - elX;
 		const y = pageY - elY;
 		this.setPosition(x, y);
-		this.parent.constructBezier();
+		this.parent.onControlPointChange();
 	};
 
 	setPosition(x: number, y: number) {

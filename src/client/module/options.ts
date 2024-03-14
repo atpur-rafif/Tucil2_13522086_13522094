@@ -6,6 +6,7 @@ export class Selection {
 	el: HTMLElement;
 	optionElements: HTMLButtonElement[];
 	currentSelectedIndex: number;
+	onChange: (value: string) => void | null;
 
 	constructor(options: string[], defaultIndex: number, fieldName: string) {
 		this.options = options;
@@ -42,6 +43,7 @@ export class Selection {
 		);
 		this.optionElements[idx].classList.add(style.selected);
 		this.currentSelectedIndex = idx;
+		if (this.onChange != null) this.onChange(this.options[idx]);
 	}
 
 	setSelectedByName(name: string) {

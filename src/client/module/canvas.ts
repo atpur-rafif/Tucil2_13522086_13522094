@@ -15,6 +15,18 @@ export class Canvas {
 
 	controlPoints: ControlPoint[];
 
+	settings: {
+		animation: boolean;
+		linePath: boolean;
+		useDivideAndConquer: boolean;
+		deleteMode: boolean;
+	} = {
+		animation: true,
+		linePath: false,
+		useDivideAndConquer: true,
+		deleteMode: false,
+	};
+
 	constructor() {
 		this.iteration = 0;
 		this.controlPoints = [];
@@ -30,13 +42,21 @@ export class Canvas {
 		this.canvas.addEventListener("click", this.onClick.bind(this));
 
 		const animationOption = new Selection(["Off", "On"], 0, "Animation");
+		animationOption.onChange = (v) => (this.settings.animation = v == "On");
 		const linePathOption = new Selection(["Off", "On"], 0, "Line Path");
+		linePathOption.onChange = (v) => {
+			this.settings.linePath = v == "On";
+			this.redraw();
+		};
+		const modeOption = new Selection(["Create and Drag", "Delete"], 0, "Mode");
+		modeOption.onChange = (v) => (this.settings.deleteMode = v == "Delete");
 		const methodOption = new Selection(
 			["Brute Force", "Divide and Conquer"],
 			0,
 			"Method",
 		);
-		const modeOption = new Selection(["Create and Drag", "Delete"], 0, "Mode");
+		methodOption.onChange = (v) =>
+			(this.settings.useDivideAndConquer = v == "Divide and Conquer");
 
 		const optionContainer = createElement("div");
 		optionContainer.classList.add(style.canvasOption);
@@ -50,10 +70,16 @@ export class Canvas {
 		this.resizeCanvas();
 	}
 
+	onControlPointChange() {
+		if (this.controlPoints.length <= 1) return;
+		this.constructBezier();
+		this.redraw();
+	}
+
 	resizeCanvas() {
 		this.canvas.width = window.innerWidth;
 		this.canvas.height = window.innerHeight;
-		if (this.controlPoints.length > 1) this.constructBezier();
+		this.onControlPointChange();
 	}
 
 	constructBezier() {
@@ -65,26 +91,30 @@ export class Canvas {
 		clearTimeout(this.timeoutId);
 		const fn = () => {
 			this.iteration += 1;
-			this.clear();
-			this.drawBezier();
+			this.redraw();
 
 			if (this.iteration < max) this.timeoutId = setTimeout(fn, 300) as any;
 		};
 		fn();
 	}
 
-	drawBezier() {
-		const bezier = bezzier(this.lazyPoint, this.iteration);
-		this.drawPath(bezier);
-	}
-
-	drawPath(path: Point[]) {
-		this.ctx.beginPath();
-		for (let i = 0; i < path.length; ++i) {
-			this.ctx.lineTo(path[i].x, path[i].y);
+	redraw() {
+		this.clear();
+		if (this.settings.linePath) {
+			this.ctx.beginPath();
+			this.ctx.setLineDash([5]);
+			this.ctx.lineWidth = 1;
+			this.ctx.strokeStyle = "gray";
+			this.getControlPoints().forEach(({ x, y }) => this.ctx.lineTo(x, y));
+			this.ctx.stroke();
 		}
+
+		const bezier = bezzier(this.lazyPoint, this.iteration);
+		this.ctx.beginPath();
+		this.ctx.setLineDash([]);
 		this.ctx.lineWidth = 2;
 		this.ctx.strokeStyle = "black";
+		bezier.forEach(({ x, y }) => this.ctx.lineTo(x, y));
 		this.ctx.stroke();
 	}
 
@@ -98,7 +128,7 @@ export class Canvas {
 		controlPoint.setPosition(x, y);
 		controlPoint.attach();
 		this.controlPoints.push(controlPoint);
-		this.constructBezier();
+		this.onControlPointChange();
 	}
 
 	getControlPoints() {
