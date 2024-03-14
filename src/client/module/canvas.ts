@@ -14,8 +14,6 @@ type CanvasSettings = {
 };
 
 export class Canvas {
-	iteration: number;
-	timeoutId: number;
 	ctx: CanvasRenderingContext2D;
 
 	el: HTMLDivElement;
@@ -34,7 +32,6 @@ export class Canvas {
 	};
 
 	constructor() {
-		this.iteration = 0;
 		this.controlPoints = [];
 
 		this.el = createElement("div");
@@ -78,8 +75,15 @@ export class Canvas {
 		this.resizeCanvas();
 	}
 
+	clearBezier() {
+		this.setBezierPath([]);
+	}
+
 	onControlPointChange() {
-		if (this.controlPoints.length <= 1) return;
+		if (this.controlPoints.length <= 1) {
+			this.clearBezier();
+			return;
+		}
 		const currentPainter = this.painter[this.currentPainterIndex];
 		const controlPoints = this.getControlPoints();
 		if (this.settings.animation)
@@ -88,7 +92,11 @@ export class Canvas {
 	}
 
 	onControlPointFinishedChange(changed: boolean) {
-		if (this.controlPoints.length <= 1) return;
+		if (this.controlPoints.length <= 1) {
+			this.clearBezier();
+			return;
+		}
+
 		if (changed && this.settings.animation) {
 			const currentPainter = this.painter[this.currentPainterIndex];
 			currentPainter.animateDraw(this.getControlPoints());
@@ -126,7 +134,7 @@ export class Canvas {
 		this.ctx.stroke();
 	}
 
-	createNewControlPoint(x: number, y: number) {
+	createControlPoint(x: number, y: number) {
 		const controlPoint = new ControlPoint(this);
 		controlPoint.setPosition(x, y);
 		controlPoint.attach();
@@ -134,12 +142,20 @@ export class Canvas {
 		this.onControlPointFinishedChange(true);
 	}
 
+	removeControlPoint(controlPoint: ControlPoint) {
+		const idx = this.controlPoints.findIndex((v) => v == controlPoint);
+		this.controlPoints.splice(idx, 1);
+		controlPoint.detach();
+		this.onControlPointFinishedChange(true);
+	}
+
 	onClick(this: Canvas, ev: MouseEvent) {
+		if (this.settings.deleteMode) return;
 		const { x: elX, y: elY } = this.canvas.getBoundingClientRect();
 		const { x: pageX, y: pageY } = ev;
 		const x = pageX - elX;
 		const y = pageY - elY;
-		this.createNewControlPoint(x, y);
+		this.createControlPoint(x, y);
 	}
 
 	getControlPoints() {

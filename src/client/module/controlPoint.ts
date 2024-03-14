@@ -38,6 +38,10 @@ export class ControlPoint {
 
 	moved: boolean = false;
 	onPointerDown = () => {
+		if (this.parent.settings.deleteMode) {
+			this.parent.removeControlPoint(this);
+			return;
+		}
 		this.dragged = true;
 		this.moved = false;
 	};
