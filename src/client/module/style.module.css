@@ -69,6 +69,40 @@
 	white-space: nowrap;
 }
 
+.infoTray {
+	display: flex;
+	/* TODO: Make tray responsive */
+	flex-direction: column;
+	gap: 0.9rem;
+	font-size: 0.9rem;
+}
+
+.infoItem {
+	display: grid;
+	grid-template-rows: 0fr;
+	background-color: white;
+	border-radius: 0.5rem;
+	transition: grid-template-rows 0.3s, opacity 1s, transform 0.3s;
+	transform: translateX(-3rem);
+	align-self: flex-start;
+	opacity: 0;
+}
+
+.expandInfoItem {
+	grid-template-rows: 1fr;
+	transform: translateX(0rem);
+	opacity: 1;
+}
+
+.infoItem>div {
+	display: block;
+	overflow: hidden;
+}
+
+.infoItem>div>p {
+	margin: 0.8rem;
+}
+
 .canvasOption {
 	position: absolute;
 	bottom: 0px;
@@ -78,4 +112,12 @@
 	display: flex;
 	flex-direction: row;
 	gap: 3rem;
+}
+
+.canvasInfoTray {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	margin: 1%;
+	padding: 1%;
 }

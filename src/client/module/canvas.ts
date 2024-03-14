@@ -5,6 +5,7 @@ import { Selection } from "./options";
 import { Point } from "./point";
 import { BezierPainterDnC } from "./bezier/divideAndConquer";
 import { BezierPainter } from "./bezier/base";
+import { StatusInfoTray } from "./statusInfo";
 
 type CanvasSettings = {
 	animation: boolean;
@@ -23,6 +24,7 @@ export class Canvas {
 	currentPainterIndex: number;
 
 	controlPoints: ControlPoint[];
+	infoTray: StatusInfoTray;
 
 	settings: CanvasSettings = {
 		animation: true,
@@ -42,6 +44,10 @@ export class Canvas {
 
 		this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
 		this.canvas.addEventListener("click", this.onClick.bind(this));
+
+		this.infoTray = new StatusInfoTray();
+		this.infoTray.el.classList.add(style.canvasInfoTray);
+		this.el.appendChild(this.infoTray.el);
 
 		this.currentPainterIndex = 0;
 		this.painter = [new BezierPainterDnC(this)];
