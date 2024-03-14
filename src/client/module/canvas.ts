@@ -97,10 +97,11 @@ export class Canvas {
 			return;
 		}
 
-		if (changed && this.settings.animation) {
-			const currentPainter = this.painter[this.currentPainterIndex];
-			currentPainter.animateDraw(this.getControlPoints());
-		}
+		const currentPainter = this.painter[this.currentPainterIndex];
+		const controlPoints = this.getControlPoints();
+		if (changed && this.settings.animation)
+			currentPainter.animateDraw(controlPoints);
+		else currentPainter.draw(controlPoints);
 	}
 
 	resizeCanvas() {
