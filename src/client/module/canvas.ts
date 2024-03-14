@@ -1,6 +1,9 @@
 import { LazyPoint, Point, bezzier } from "..";
 import { ControlPoint } from "./controlPoint";
 import { createElement, styleElement } from "./util";
+import { test } from "./selection";
+
+test();
 
 export class Canvas {
 	iteration: number;
