@@ -1,9 +1,7 @@
 import { LazyPoint, Point, bezzier } from "..";
 import { ControlPoint } from "./controlPoint";
-import { createElement, styleElement } from "./util";
-import { test } from "./selection";
-
-test();
+import { createElement } from "./util";
+import style from "./style.module.css";
 
 export class Canvas {
 	iteration: number;
@@ -20,19 +18,14 @@ export class Canvas {
 	constructor() {
 		this.iteration = 0;
 		this.controlPoints = [];
+
 		this.el = createElement("div");
-		styleElement(this.el, {
-			position: "relative",
-			userSelect: "none",
-			webkitUserSelect: "none",
-			height: "100vh",
-			width: "100vw",
-		});
+		this.el.classList.add(style.canvasContainer);
+
 		this.canvas = createElement("canvas");
-		styleElement(this.canvas, {
-			backgroundColor: "lightblue",
-		});
+		this.canvas.classList.add(style.canvas);
 		this.el.appendChild(this.canvas);
+
 		this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
 		this.canvas.addEventListener("click", this.onClick.bind(this));
 

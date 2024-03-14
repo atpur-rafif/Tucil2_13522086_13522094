@@ -1,6 +1,7 @@
 import { Point } from "..";
 import { Canvas } from "./canvas";
 import { createElement, styleElement } from "./util";
+import style from "./style.module.css";
 
 export class ControlPoint {
 	parent: Canvas;
@@ -13,19 +14,11 @@ export class ControlPoint {
 		this.dragged = false;
 		this.position = new Point(0, 0);
 
-		this.el = createElement("div", {
-			draggable: false,
-		});
+		this.el = createElement("div", { draggable: false });
+		this.el.classList.add(style.controlPoint);
 		styleElement(this.el, {
-			width: "10px",
-			height: "10px",
-			backgroundColor: "black",
-			position: "absolute",
-			cursor: "pointer",
 			left: `${this.position.x}px`,
 			top: `${this.position.y}px`,
-			transform: "translate(-50%,-50%)",
-			borderRadius: "100%",
 		});
 	}
 
