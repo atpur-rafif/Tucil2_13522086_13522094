@@ -1,25 +1,25 @@
-import http from "http"
-import path from "path"
-import fs from "fs"
-import { fileURLToPath } from "url"
+import http from "http";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 
-const hostname = "localhost"
+const hostname = "localhost";
 const port = 8080;
 
-const serverDir = path.dirname(fileURLToPath(import.meta.url))
-const clientDir = path.resolve(serverDir, "..", "client")
+const serverDir = path.dirname(fileURLToPath(import.meta.url));
+const clientDir = path.resolve(serverDir, "..", "client");
 
 const server = http.createServer((req, res) => {
-	const relative = path.relative("/", req.url || "")
-	const resourceFile = path.resolve(clientDir, relative)
+	const relative = path.relative("/", req.url || "");
+	const resourceFile = path.resolve(clientDir, relative);
 
 	let file: string;
 	try {
-		file = fs.readFileSync(resourceFile, "utf8")
+		file = fs.readFileSync(resourceFile, "utf8");
 	} catch (error) {
-		res.statusCode = 404
-		res.end("Resource not found\n")
-		return
+		const relativeFallback = "index.html";
+		const fallbackPath = path.resolve(clientDir, relativeFallback);
+		file = fs.readFileSync(fallbackPath, "utf8");
 	}
 
 	res.statusCode = 200;
