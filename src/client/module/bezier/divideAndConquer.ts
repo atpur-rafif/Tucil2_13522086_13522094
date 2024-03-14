@@ -83,16 +83,15 @@ export class BezierPainterDnC implements BezierPainter {
 		this.canvas = canvas;
 	}
 
-	updateControlPoint(point: Point[]) {
+	draw(point: Point[]) {
 		this.bezier = new BezierDnC(point);
-	}
-
-	draw() {
 		const bezier = this.bezier.generate(this.target);
 		this.canvas.setBezierPath(bezier);
 	}
 
-	animateDraw() {
+	animateDraw(point: Point[]) {
+		this.bezier = new BezierDnC(point);
+
 		let i = 0;
 		clearTimeout(this.timerId);
 		const fn = () => {
@@ -101,6 +100,11 @@ export class BezierPainterDnC implements BezierPainter {
 			if (i < this.target) this.timerId = setTimeout(fn, 100) as any;
 		};
 		fn();
+	}
+
+	drawFirstAnimationFrame(point: Point[]) {
+		this.bezier = new BezierDnC(point);
+		this.canvas.setBezierPath(this.bezier.generate(0));
 	}
 
 	killAnimation() {

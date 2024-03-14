@@ -81,9 +81,18 @@ export class Canvas {
 	onControlPointChange() {
 		if (this.controlPoints.length <= 1) return;
 		const currentPainter = this.painter[this.currentPainterIndex];
-		currentPainter.updateControlPoint(this.getControlPoints());
-		if (this.settings.animation) currentPainter.animateDraw();
-		else currentPainter.draw();
+		const controlPoints = this.getControlPoints();
+		if (this.settings.animation)
+			currentPainter.drawFirstAnimationFrame(controlPoints);
+		else currentPainter.draw(controlPoints);
+	}
+
+	onControlPointFinishedChange(changed: boolean) {
+		if (this.controlPoints.length <= 1) return;
+		if (changed && this.settings.animation) {
+			const currentPainter = this.painter[this.currentPainterIndex];
+			currentPainter.animateDraw(this.getControlPoints());
+		}
 	}
 
 	resizeCanvas() {
@@ -122,7 +131,7 @@ export class Canvas {
 		controlPoint.setPosition(x, y);
 		controlPoint.attach();
 		this.controlPoints.push(controlPoint);
-		this.onControlPointChange();
+		this.onControlPointFinishedChange(true);
 	}
 
 	onClick(this: Canvas, ev: MouseEvent) {

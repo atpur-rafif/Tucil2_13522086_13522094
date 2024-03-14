@@ -36,12 +36,16 @@ export class ControlPoint {
 		this.parent.el.removeChild(this.el);
 	}
 
+	moved: boolean = false;
 	onPointerDown = () => {
 		this.dragged = true;
+		this.moved = false;
 	};
 
 	onPointerUp = () => {
 		this.dragged = false;
+		this.parent.onControlPointFinishedChange(this.moved);
+		this.moved = false;
 	};
 
 	onPointerMove = (ev: MouseEvent) => {
@@ -50,6 +54,7 @@ export class ControlPoint {
 		const { x: pageX, y: pageY } = ev;
 		const x = pageX - elX;
 		const y = pageY - elY;
+		this.moved = true;
 		this.setPosition(x, y);
 		this.parent.onControlPointChange();
 	};
