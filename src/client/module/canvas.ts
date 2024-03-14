@@ -2,6 +2,7 @@ import { LazyPoint, Point, bezzier } from "..";
 import { ControlPoint } from "./controlPoint";
 import { createElement } from "./util";
 import style from "./style.module.css";
+import { Selection } from "./options";
 
 export class Canvas {
 	iteration: number;
@@ -11,7 +12,6 @@ export class Canvas {
 
 	el: HTMLDivElement;
 	canvas: HTMLCanvasElement;
-	animationOption: HTMLSelectElement;
 
 	controlPoints: ControlPoint[];
 
@@ -28,6 +28,23 @@ export class Canvas {
 
 		this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
 		this.canvas.addEventListener("click", this.onClick.bind(this));
+
+		const animationOption = new Selection(["Off", "On"], 0, "Animation");
+		const linePathOption = new Selection(["Off", "On"], 0, "Line Path");
+		const methodOption = new Selection(
+			["Brute Force", "Divide and Conquer"],
+			0,
+			"Method",
+		);
+		const modeOption = new Selection(["Create and Drag", "Delete"], 0, "Mode");
+
+		const optionContainer = createElement("div");
+		optionContainer.classList.add(style.canvasOption);
+		optionContainer.appendChild(methodOption.el);
+		optionContainer.appendChild(modeOption.el);
+		optionContainer.appendChild(animationOption.el);
+		optionContainer.appendChild(linePathOption.el);
+		this.el.appendChild(optionContainer);
 
 		window.addEventListener("resize", this.resizeCanvas.bind(this));
 		this.resizeCanvas();
