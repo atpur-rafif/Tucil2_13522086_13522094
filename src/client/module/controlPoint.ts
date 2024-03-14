@@ -1,4 +1,4 @@
-import { Point } from "..";
+import { Point } from "./point";
 import { Canvas } from "./canvas";
 import { createElement, styleElement } from "./util";
 import style from "./style.module.css";
