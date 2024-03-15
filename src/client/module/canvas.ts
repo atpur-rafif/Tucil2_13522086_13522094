@@ -5,7 +5,7 @@ import { Selection } from "./options";
 import { Point } from "./point";
 import { BezierPainterDnC } from "./bezier/divideAndConquer";
 import { BezierPainter } from "./bezier/base";
-import { StatusInfoTray } from "./statusInfo";
+import { Benchmark } from "./benchmark";
 
 type CanvasSettings = {
 	linePath: boolean;
@@ -32,7 +32,6 @@ export class Canvas {
 	currentPainterIndex: number;
 
 	controlPoints: ControlPoint[];
-	infoTray: StatusInfoTray;
 
 	settings: CanvasSettings = {
 		linePath: false,
@@ -56,10 +55,6 @@ export class Canvas {
 		this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
 		this.canvas.addEventListener("click", this.onClick.bind(this));
 
-		this.infoTray = new StatusInfoTray();
-		this.infoTray.el.classList.add(style.canvasInfoTray);
-		this.el.appendChild(this.infoTray.el);
-
 		this.currentPainterIndex = 0;
 		this.painters = [new BezierPainterDnC()];
 		this.painters.forEach(
@@ -69,6 +64,10 @@ export class Canvas {
 					this.redraw();
 				}),
 		);
+
+		const benchmark = new Benchmark();
+		benchmark.el.classList.add(style.canvasBenchmark);
+		this.el.append(benchmark.el);
 
 		this.configTray = createElement("div");
 		this.configTray.appendChild(this.getCurrentPainter().configEl);

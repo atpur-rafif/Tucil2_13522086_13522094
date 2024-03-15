@@ -1,7 +1,7 @@
 import { createElement } from "./util";
 import style from "./style.module.css";
 
-export class StatusInfoTray {
+export class InfoTray {
 	el: HTMLDivElement;
 	message: Record<
 		string,
@@ -15,16 +15,6 @@ export class StatusInfoTray {
 		this.el = createElement("div");
 		this.el.classList.add(style.infoTray);
 		this.message = {};
-		// this.addInfo("p", "Test 1");
-		// setTimeout(() => {
-		// 	this.addInfo("q", "Ini tulisan yang sangat panjang\nTest2");
-		// 	setTimeout(() => {
-		// 		this.removeInfo("p");
-		// 		setTimeout(() => {
-		// 			this.removeInfo("q");
-		// 		}, 1000);
-		// 	}, 500);
-		// }, 1000);
 	}
 
 	addInfo(id: string, msg: string) {
