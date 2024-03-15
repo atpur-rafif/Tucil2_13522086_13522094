@@ -2,7 +2,7 @@ import { ControlPointEvent } from "../canvas";
 import { InputNumber } from "../inputNumber";
 import { Point } from "../point";
 import { createElement, styleElement } from "../util";
-import { BezierPainter } from "./base";
+import { BenchmarkParameter, BezierPainter } from "./base";
 
 type LazyPath = [LazyPoint, Point, LazyPoint];
 export class LazyPoint {
@@ -120,7 +120,7 @@ export class BezierPainterDnC extends BezierPainter {
 		this.draw(this.bezier.generate(this.maxIteration));
 	}
 
-	onControlPointEvent(e: ControlPointEvent, point: Point[]) {
+	onControlPointEvent(_: ControlPointEvent, point: Point[]) {
 		if (point.length <= 1) {
 			this.draw([]);
 			return;
@@ -128,6 +128,27 @@ export class BezierPainterDnC extends BezierPainter {
 
 		this.bezier = new BezierDnC(point);
 		this.show();
+	}
+
+	benchmark(
+		controlPoints: Point[],
+		targetPointCount: number,
+	): Promise<BenchmarkParameter> {
+		const start = performance.now();
+		const bezier = new BezierDnC(controlPoints);
+		let len = 0;
+		let i = 0;
+		while (len <= targetPointCount) {
+			len = bezier.generate(i++).length;
+		}
+		const end = performance.now();
+
+		return Promise.resolve({
+			msTime: end - start,
+			overshoot: len - targetPointCount,
+			pointCount: len,
+			strategyName: "Divide and Conquer",
+		});
 	}
 
 	killAnimation() {

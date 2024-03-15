@@ -65,7 +65,7 @@ export class Canvas {
 				}),
 		);
 
-		const benchmark = new Benchmark();
+		const benchmark = new Benchmark(this);
 		benchmark.el.classList.add(style.canvasBenchmark);
 		this.el.append(benchmark.el);
 

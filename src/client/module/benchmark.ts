@@ -1,14 +1,18 @@
 import { createElement, styleElement } from "./util";
 import style from "./style.module.css";
 import { InfoTray } from "./InfoTray";
+import { Canvas } from "./canvas";
 
 export class Benchmark {
 	el: HTMLDivElement;
 	inp: HTMLInputElement;
 	btn: HTMLButtonElement;
 	tray: InfoTray;
+	canvas: Canvas;
 
-	constructor() {
+	constructor(canvas: Canvas) {
+		this.canvas = canvas;
+
 		this.el = createElement("div");
 		this.el.classList.add(style.benchmark);
 
@@ -39,8 +43,13 @@ export class Benchmark {
 		this.el.append(this.tray.el);
 
 		this.btn.addEventListener("click", () => {
-			const id = Math.random().toString();
-			this.tray.addInfo(id, "value " + this.inp.value);
+			const pointCountTarget = parseInt(this.inp.value);
+			const controlPoints = this.canvas.getControlPoints();
+			this.canvas.painters.forEach((painter) => {
+				painter.benchmark(controlPoints, pointCountTarget).then((v) => {
+					this.tray.addInfo("", JSON.stringify(v, null, 4));
+				});
+			});
 		});
 	}
 }
