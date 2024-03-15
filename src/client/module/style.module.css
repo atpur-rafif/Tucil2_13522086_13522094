@@ -28,6 +28,10 @@
 	border-radius: 100%;
 }
 
+.controlPointContainer {
+	display: block;
+}
+
 .selectionContainer {
 	display: flex;
 	flex-direction: column;

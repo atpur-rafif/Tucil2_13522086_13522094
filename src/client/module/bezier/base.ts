@@ -1,9 +1,13 @@
+import { ControlPointEvent } from "../canvas";
 import { Point } from "../point";
 
 export abstract class BezierPainter {
-	configEl: HTMLElement;
-	drawFirstAnimationFrame: (controlPoint: Point[]) => void;
-	animateDraw: (controlPoint: Point[]) => void;
-	draw: (controlPoint: Point[]) => void;
-	killAnimation: () => void;
+	abstract configEl: HTMLElement;
+	abstract attach(): void;
+	abstract detach(): void;
+	abstract onControlPointEvent(event: ControlPointEvent, point: Point[]): void;
+
+	draw(_: Point[]) {
+		throw Error("Draw function not attached");
+	}
 }

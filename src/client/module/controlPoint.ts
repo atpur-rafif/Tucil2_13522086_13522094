@@ -4,13 +4,13 @@ import { createElement, styleElement } from "./util";
 import style from "./style.module.css";
 
 export class ControlPoint {
-	parent: Canvas;
+	canvas: Canvas;
 	position: Point;
 	dragged: boolean;
 	el: HTMLDivElement;
 
 	constructor(parent: Canvas) {
-		this.parent = parent;
+		this.canvas = parent;
 		this.dragged = false;
 		this.position = new Point(0, 0);
 
@@ -24,44 +24,41 @@ export class ControlPoint {
 
 	attach() {
 		this.el.addEventListener("pointerdown", this.onPointerDown);
-		this.parent.el.addEventListener("pointerup", this.onPointerUp);
-		this.parent.el.addEventListener("pointermove", this.onPointerMove);
-		this.parent.el.appendChild(this.el);
+		this.canvas.el.addEventListener("pointerup", this.onPointerUp);
+		this.canvas.el.addEventListener("pointermove", this.onPointerMove);
+		this.canvas.controlPointsContainer.appendChild(this.el);
 	}
 
 	detach() {
 		this.el.removeEventListener("pointerdown", this.onPointerDown);
-		this.parent.el.removeEventListener("pointerup", this.onPointerUp);
-		this.parent.el.removeEventListener("pointermove", this.onPointerMove);
-		this.parent.el.removeChild(this.el);
+		this.canvas.el.removeEventListener("pointerup", this.onPointerUp);
+		this.canvas.el.removeEventListener("pointermove", this.onPointerMove);
+		this.canvas.controlPointsContainer.removeChild(this.el);
 	}
 
-	moved: boolean = false;
 	onPointerDown = () => {
-		if (this.parent.settings.deleteMode) {
-			this.parent.removeControlPoint(this);
+		if (this.canvas.settings.deleteMode) {
+			this.canvas.removeControlPoint(this);
 			return;
 		}
 		this.dragged = true;
-		this.moved = false;
-	};
-
-	onPointerUp = () => {
-		if (!this.dragged) return;
-		this.parent.onControlPointFinishedChange(this.moved);
-		this.dragged = false;
-		this.moved = false;
+		this.canvas.dispatchControlPointEvent("start_edit");
 	};
 
 	onPointerMove = (ev: MouseEvent) => {
 		if (!this.dragged) return;
-		const { x: elX, y: elY } = this.parent.canvas.getBoundingClientRect();
+		const { x: elX, y: elY } = this.canvas.canvas.getBoundingClientRect();
 		const { x: pageX, y: pageY } = ev;
 		const x = pageX - elX;
 		const y = pageY - elY;
-		this.moved = true;
 		this.setPosition(x, y);
-		this.parent.onControlPointChange();
+		this.canvas.dispatchControlPointEvent("edit");
+	};
+
+	onPointerUp = () => {
+		if (!this.dragged) return;
+		this.dragged = false;
+		this.canvas.dispatchControlPointEvent("end_edit");
 	};
 
 	setPosition(x: number, y: number) {

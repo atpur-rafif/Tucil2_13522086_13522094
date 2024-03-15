@@ -1,5 +1,5 @@
 import { ControlPoint } from "./controlPoint";
-import { createElement, styleElement } from "./util";
+import { createElement } from "./util";
 import style from "./style.module.css";
 import { Selection } from "./options";
 import { Point } from "./point";
@@ -8,28 +8,33 @@ import { BezierPainter } from "./bezier/base";
 import { StatusInfoTray } from "./statusInfo";
 
 type CanvasSettings = {
-	animation: boolean;
 	linePath: boolean;
 	useDivideAndConquer: boolean;
 	deleteMode: boolean;
 };
+
+export type ControlPointEvent =
+	| "start_edit"
+	| "edit"
+	| "end_edit"
+	| "count_edit";
 
 export class Canvas {
 	ctx: CanvasRenderingContext2D;
 
 	el: HTMLDivElement;
 	controlPointsContainer: HTMLDivElement;
+	bezierPath: Point[];
 	canvas: HTMLCanvasElement;
 	configTray: HTMLDivElement;
 
-	painter: BezierPainter[];
+	painters: BezierPainter[];
 	currentPainterIndex: number;
 
 	controlPoints: ControlPoint[];
 	infoTray: StatusInfoTray;
 
 	settings: CanvasSettings = {
-		animation: true,
 		linePath: false,
 		useDivideAndConquer: true,
 		deleteMode: false,
@@ -41,6 +46,7 @@ export class Canvas {
 		this.el = createElement("div");
 
 		this.controlPointsContainer = createElement("div");
+		this.controlPointsContainer.classList.add(style.controlPointContainer);
 		this.el.append(this.controlPointsContainer);
 
 		this.canvas = createElement("canvas");
@@ -55,15 +61,20 @@ export class Canvas {
 		this.el.appendChild(this.infoTray.el);
 
 		this.currentPainterIndex = 0;
-		this.painter = [new BezierPainterDnC(this)];
+		this.painters = [new BezierPainterDnC()];
+		this.painters.forEach(
+			(painter) =>
+				(painter.draw = (path) => {
+					this.bezierPath = path;
+					this.redraw();
+				}),
+		);
 
 		this.configTray = createElement("div");
 		this.configTray.appendChild(this.getCurrentPainter().configEl);
 		this.configTray.classList.add(style.canvasConfigTray);
 		this.el.appendChild(this.configTray);
 
-		const animationOption = new Selection(["Off", "On"], 1, "Animation");
-		animationOption.onChange = (v) => (this.settings.animation = v == "On");
 		const linePathOption = new Selection(["Off", "On"], 0, "Line Path");
 		linePathOption.onChange = (v) => {
 			this.settings.linePath = v == "On";
@@ -83,7 +94,6 @@ export class Canvas {
 		optionContainer.classList.add(style.canvasOption);
 		optionContainer.appendChild(methodOption.el);
 		optionContainer.appendChild(modeOption.el);
-		optionContainer.appendChild(animationOption.el);
 		optionContainer.appendChild(linePathOption.el);
 		this.el.appendChild(optionContainer);
 
@@ -91,50 +101,31 @@ export class Canvas {
 		this.resizeCanvas();
 	}
 
-	clearBezier() {
-		this.setBezierPath([]);
+	drawer(point: Point[]) {
+		this.bezierPath = point;
+		this.redraw();
+	}
+
+	getControlPoints() {
+		return this.controlPoints.map((controlPoint) => controlPoint.getPosition());
+	}
+
+	dispatchControlPointEvent(event: ControlPointEvent) {
+		const controlPoints = this.getControlPoints();
+		const currentPainter = this.getCurrentPainter();
+		currentPainter.onControlPointEvent(event, controlPoints);
 	}
 
 	getCurrentPainter() {
-		return this.painter[this.currentPainterIndex];
+		return this.painters[this.currentPainterIndex];
 	}
 
-	onControlPointChange() {
-		if (this.controlPoints.length <= 1) {
-			this.clearBezier();
-			return;
-		}
-		const currentPainter = this.getCurrentPainter();
-		currentPainter.killAnimation();
-		const controlPoints = this.getControlPoints();
-		if (this.settings.animation)
-			currentPainter.drawFirstAnimationFrame(controlPoints);
-		else currentPainter.draw(controlPoints);
-	}
-
-	onControlPointFinishedChange(changed: boolean) {
-		if (this.controlPoints.length <= 1) {
-			this.clearBezier();
-			return;
-		}
-
-		const currentPainter = this.getCurrentPainter();
-		const controlPoints = this.getControlPoints();
-		if (changed && this.settings.animation)
-			currentPainter.animateDraw(controlPoints);
-		else currentPainter.draw(controlPoints);
-	}
+	setCurrentPainter() {}
 
 	resizeCanvas() {
 		this.canvas.width = window.innerWidth;
 		this.canvas.height = window.innerHeight;
-		this.onControlPointChange();
-	}
-
-	bezierPath: Point[] = [];
-	setBezierPath(path: Point[]) {
-		this.bezierPath = path;
-		this.redraw();
+		this.dispatchControlPointEvent("count_edit");
 	}
 
 	redraw() {
@@ -161,14 +152,14 @@ export class Canvas {
 		controlPoint.setPosition(x, y);
 		controlPoint.attach();
 		this.controlPoints.push(controlPoint);
-		this.onControlPointFinishedChange(true);
+		this.dispatchControlPointEvent("count_edit");
 	}
 
 	removeControlPoint(controlPoint: ControlPoint) {
 		const idx = this.controlPoints.findIndex((v) => v == controlPoint);
 		this.controlPoints.splice(idx, 1);
 		controlPoint.detach();
-		this.onControlPointFinishedChange(true);
+		this.dispatchControlPointEvent("count_edit");
 	}
 
 	onClick(this: Canvas, ev: MouseEvent) {
@@ -178,10 +169,6 @@ export class Canvas {
 		const x = pageX - elX;
 		const y = pageY - elY;
 		this.createControlPoint(x, y);
-	}
-
-	getControlPoints() {
-		return this.controlPoints.map((controlPoint) => controlPoint.getPosition());
 	}
 
 	clear() {

@@ -1,4 +1,4 @@
-import { Canvas } from "../canvas";
+import { ControlPointEvent } from "../canvas";
 import { InputNumber } from "../inputNumber";
 import { Point } from "../point";
 import { createElement, styleElement } from "../util";
@@ -75,8 +75,7 @@ export class BezierDnC {
 	}
 }
 
-export class BezierPainterDnC implements BezierPainter {
-	canvas: Canvas;
+export class BezierPainterDnC extends BezierPainter {
 	bezier: BezierDnC;
 	timerId: number;
 	configEl: HTMLDivElement;
@@ -85,8 +84,8 @@ export class BezierPainterDnC implements BezierPainter {
 
 	iterationInput: InputNumber;
 
-	constructor(canvas: Canvas) {
-		this.canvas = canvas;
+	constructor() {
+		super();
 		this.configEl = createElement("div");
 
 		const iterationEl = createElement("div");
@@ -100,8 +99,6 @@ export class BezierPainterDnC implements BezierPainter {
 		const maxIteration = new InputNumber("Auto Max", this.maxIteration);
 		this.iterationInput.onChange = (value) => {
 			this.iteration = value;
-			this.killAnimation();
-			this.canvas.setBezierPath(this.bezier.generate(this.iteration));
 		};
 		maxIteration.onChange = (value) => {
 			this.maxIteration = value;
@@ -113,30 +110,24 @@ export class BezierPainterDnC implements BezierPainter {
 		this.configEl.append(iterationEl);
 	}
 
-	draw(point: Point[]) {
-		this.bezier = new BezierDnC(point);
-		this.canvas.setBezierPath(this.bezier.generate(this.maxIteration));
-		this.iterationInput.changeDisplayValue(this.maxIteration);
-	}
+	attach() {}
 
-	animateDraw(point: Point[]) {
-		this.bezier = new BezierDnC(point);
-
-		let i = 0;
+	detach() {
 		this.killAnimation();
-		const fn = () => {
-			this.canvas.setBezierPath(this.bezier.generate(i));
-			this.iterationInput.changeDisplayValue(i);
-			++i;
-			if (i <= this.maxIteration) this.timerId = setTimeout(fn, 100) as any;
-		};
-		fn();
 	}
 
-	drawFirstAnimationFrame(point: Point[]) {
+	show() {
+		this.draw(this.bezier.generate(this.maxIteration));
+	}
+
+	onControlPointEvent(e: ControlPointEvent, point: Point[]) {
+		if (point.length <= 1) {
+			this.draw([]);
+			return;
+		}
+
 		this.bezier = new BezierDnC(point);
-		this.canvas.setBezierPath(this.bezier.generate(0));
-		this.iterationInput.changeDisplayValue(0);
+		this.show();
 	}
 
 	killAnimation() {
