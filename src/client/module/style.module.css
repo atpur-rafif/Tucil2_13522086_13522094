@@ -69,6 +69,38 @@
 	white-space: nowrap;
 }
 
+.inputNumberContainer {
+	display: flex;
+	flex-direction: column;
+	background-color: white;
+	border-radius: 0.3rem;
+	align-items: center;
+}
+
+.inputNumberContainer button {
+	border: none;
+	cursor: pointer;
+	background-color: transparent;
+	padding: 0.3rem;
+}
+
+.inputNumberContainer p {
+	margin: 0.2rem;
+	font-size: 0.8rem;
+}
+
+.inputNumberContainer input {
+	appearance: none;
+	-webkit-appearance: none;
+	width: 50px;
+	border: none;
+	background-color: transparent;
+	outline: none;
+	transition: all 0.1s;
+	text-align: center;
+	font-size: 1rem;
+}
+
 .infoTray {
 	display: flex;
 	/* TODO: Make tray responsive */
@@ -120,4 +152,11 @@
 	left: 0px;
 	margin: 1%;
 	padding: 1%;
+}
+
+.canvasConfigTray {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	padding: 3%;
 }

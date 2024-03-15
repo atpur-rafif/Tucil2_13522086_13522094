@@ -1,5 +1,5 @@
 import { ControlPoint } from "./controlPoint";
-import { createElement } from "./util";
+import { createElement, styleElement } from "./util";
 import style from "./style.module.css";
 import { Selection } from "./options";
 import { Point } from "./point";
@@ -18,7 +18,9 @@ export class Canvas {
 	ctx: CanvasRenderingContext2D;
 
 	el: HTMLDivElement;
+	controlPointsContainer: HTMLDivElement;
 	canvas: HTMLCanvasElement;
+	configTray: HTMLDivElement;
 
 	painter: BezierPainter[];
 	currentPainterIndex: number;
@@ -38,6 +40,9 @@ export class Canvas {
 
 		this.el = createElement("div");
 
+		this.controlPointsContainer = createElement("div");
+		this.el.append(this.controlPointsContainer);
+
 		this.canvas = createElement("canvas");
 		this.canvas.classList.add(style.canvas);
 		this.el.appendChild(this.canvas);
@@ -51,6 +56,11 @@ export class Canvas {
 
 		this.currentPainterIndex = 0;
 		this.painter = [new BezierPainterDnC(this)];
+
+		this.configTray = createElement("div");
+		this.configTray.appendChild(this.getCurrentPainter().configEl);
+		this.configTray.classList.add(style.canvasConfigTray);
+		this.el.appendChild(this.configTray);
 
 		const animationOption = new Selection(["Off", "On"], 1, "Animation");
 		animationOption.onChange = (v) => (this.settings.animation = v == "On");
@@ -85,12 +95,17 @@ export class Canvas {
 		this.setBezierPath([]);
 	}
 
+	getCurrentPainter() {
+		return this.painter[this.currentPainterIndex];
+	}
+
 	onControlPointChange() {
 		if (this.controlPoints.length <= 1) {
 			this.clearBezier();
 			return;
 		}
-		const currentPainter = this.painter[this.currentPainterIndex];
+		const currentPainter = this.getCurrentPainter();
+		currentPainter.killAnimation();
 		const controlPoints = this.getControlPoints();
 		if (this.settings.animation)
 			currentPainter.drawFirstAnimationFrame(controlPoints);
@@ -103,7 +118,7 @@ export class Canvas {
 			return;
 		}
 
-		const currentPainter = this.painter[this.currentPainterIndex];
+		const currentPainter = this.getCurrentPainter();
 		const controlPoints = this.getControlPoints();
 		if (changed && this.settings.animation)
 			currentPainter.animateDraw(controlPoints);

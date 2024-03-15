@@ -47,8 +47,9 @@ export class ControlPoint {
 	};
 
 	onPointerUp = () => {
-		this.dragged = false;
+		if (!this.dragged) return;
 		this.parent.onControlPointFinishedChange(this.moved);
+		this.dragged = false;
 		this.moved = false;
 	};
 

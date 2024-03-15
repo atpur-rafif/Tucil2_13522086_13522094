@@ -15,16 +15,16 @@ export class StatusInfoTray {
 		this.el = createElement("div");
 		this.el.classList.add(style.infoTray);
 		this.message = {};
-		this.addInfo("p", "Test 1");
-		setTimeout(() => {
-			this.addInfo("q", "Ini tulisan yang sangat panjang\nTest2");
-			setTimeout(() => {
-				this.removeInfo("p");
-				setTimeout(() => {
-					this.removeInfo("q");
-				}, 1000);
-			}, 500);
-		}, 1000);
+		// this.addInfo("p", "Test 1");
+		// setTimeout(() => {
+		// 	this.addInfo("q", "Ini tulisan yang sangat panjang\nTest2");
+		// 	setTimeout(() => {
+		// 		this.removeInfo("p");
+		// 		setTimeout(() => {
+		// 			this.removeInfo("q");
+		// 		}, 1000);
+		// 	}, 500);
+		// }, 1000);
 	}
 
 	addInfo(id: string, msg: string) {
@@ -48,7 +48,8 @@ export class StatusInfoTray {
 		const target = this.message[id];
 		if (!target) return;
 		target.el.addEventListener("transitionend", () => {
-			if (target.el.parentElement) this.el.removeChild(target.el);
+			if (target.el.parentElement && target.el.getAnimations().length == 0)
+				this.el.removeChild(target.el);
 			delete this.message[id];
 		});
 		target.el.classList.remove(style.expandInfoItem);

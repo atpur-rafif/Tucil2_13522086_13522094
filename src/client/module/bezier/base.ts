@@ -1,6 +1,7 @@
 import { Point } from "../point";
 
 export abstract class BezierPainter {
+	configEl: HTMLElement;
 	drawFirstAnimationFrame: (controlPoint: Point[]) => void;
 	animateDraw: (controlPoint: Point[]) => void;
 	draw: (controlPoint: Point[]) => void;
