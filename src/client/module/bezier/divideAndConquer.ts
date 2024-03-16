@@ -99,6 +99,7 @@ export class BezierPainterDnC extends BezierPainter {
 		const maxIteration = new InputNumber("Auto Max", this.maxIteration);
 		this.iterationInput.onChange = (value) => {
 			this.iteration = value;
+			this.draw(this.bezier.generate(this.iteration));
 		};
 		maxIteration.onChange = (value) => {
 			this.maxIteration = value;
@@ -116,10 +117,6 @@ export class BezierPainterDnC extends BezierPainter {
 		this.killAnimation();
 	}
 
-	show() {
-		this.draw(this.bezier.generate(this.maxIteration));
-	}
-
 	onControlPointEvent(_: ControlPointEvent, point: Point[]) {
 		if (point.length <= 1) {
 			this.draw([]);
@@ -127,7 +124,8 @@ export class BezierPainterDnC extends BezierPainter {
 		}
 
 		this.bezier = new BezierDnC(point);
-		this.show();
+		this.iterationInput.changeDisplayValue(this.maxIteration);
+		this.draw(this.bezier.generate(this.maxIteration));
 	}
 
 	benchmark(
