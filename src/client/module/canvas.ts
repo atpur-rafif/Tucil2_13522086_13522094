@@ -90,6 +90,16 @@ export class Canvas {
 		methodOption.onChange = (v) =>
 			(this.settings.useDivideAndConquer = v == "Divide and Conquer");
 
+		const clearButton = createElement("button", {
+			innerText: "🗑",
+		});
+		clearButton.classList.add(style.canvasClear);
+		clearButton.addEventListener("click", () => {
+			while (this.controlPoints.length > 0)
+				this.removeControlPoint(this.controlPoints[0]);
+		});
+		this.el.appendChild(clearButton);
+
 		const optionContainer = createElement("div");
 		optionContainer.classList.add(style.canvasOption);
 		optionContainer.appendChild(methodOption.el);

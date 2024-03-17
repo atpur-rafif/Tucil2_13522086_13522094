@@ -176,7 +176,7 @@
 	bottom: 0px;
 	left: 50%;
 	transform: translate(-50%, 0%);
-	padding: 3%;
+	margin: 3%;
 	display: flex;
 	flex-direction: row;
 	gap: 3rem;
@@ -186,12 +186,23 @@
 	position: absolute;
 	top: 0px;
 	right: 0px;
-	padding: 2%;
+	margin: 2%;
 }
 
 .canvasBenchmark {
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	padding: 2%;
+	margin: 2%;
+}
+
+.canvasClear {
+	position: absolute;
+	bottom: 0px;
+	right: 0px;
+	padding: 1rem;
+	margin: 2%;
+	background-color: white;
+	border-radius: 1rem;
+	font-size: 1.1rem;
 }
