@@ -124,8 +124,12 @@ export class BezierPainterDnC extends BezierPainter {
 		}
 
 		this.bezier = new BezierDnC(point);
-		this.iterationInput.changeDisplayValue(this.maxIteration);
-		this.draw(this.bezier.generate(this.maxIteration));
+		this.iterationInput.changeValue(this.maxIteration);
+	}
+
+	getCurrentResult(): Point[] {
+		if (!this.bezier) return [];
+		return this.bezier.generate(this.iteration);
 	}
 
 	benchmark(

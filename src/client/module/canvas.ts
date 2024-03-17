@@ -96,15 +96,39 @@ export class Canvas {
 		methodOption.onChange = (v) =>
 			(this.settings.useDivideAndConquer = v == "Divide and Conquer");
 
-		const clearButton = createElement("button", {
-			innerText: "🗑",
-		});
-		clearButton.classList.add(style.canvasClear);
+		const clearButton = createElement("button", { innerText: "🗑" });
+		clearButton.classList.add(style.canvasButton);
 		clearButton.addEventListener("click", () => {
 			while (this.controlPoints.length > 0)
 				this.removeControlPoint(this.controlPoints[0]);
 		});
-		this.el.appendChild(clearButton);
+
+		const downloadButton = createElement("button", { innerText: "↓" });
+		downloadButton.addEventListener("click", () => {
+			const input = this.getControlPoints();
+			const inputStr = input.map(({ x, y }) => [x, y]).join("\n");
+
+			const output = this.getCurrentPainter().getCurrentResult();
+			const outputStr = output.map(({ x, y }) => [x, y]).join("\n");
+
+			const str = `Control Points (${input.length} points):\n${inputStr}\n\nCurve (${output.length} points):\n${outputStr}`;
+
+			const blob = new Blob([str], { type: "text/txt" });
+			// @ts-ignore
+			const elem = createElement("a", {
+				href: window.URL.createObjectURL(blob),
+				download: "bezier.txt",
+			});
+			document.body.appendChild(elem);
+			elem.click();
+			document.body.removeChild(elem);
+		});
+		downloadButton.classList.add(style.canvasButton);
+
+		const buttonContainer = createElement("div");
+		buttonContainer.classList.add(style.canvasButtonContainer);
+		buttonContainer.append(downloadButton, clearButton);
+		this.el.appendChild(buttonContainer);
 
 		const optionContainer = createElement("div");
 		optionContainer.classList.add(style.canvasOption);
