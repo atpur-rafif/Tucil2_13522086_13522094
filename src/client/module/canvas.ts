@@ -121,7 +121,7 @@ export class Canvas {
 	}
 
 	dispatchControlPointEvent(event: ControlPointEvent) {
-		this.benchmark.tray.clearAll();
+		if (this.benchmark.benchmarked) this.benchmark.clickHandler();
 		const controlPoints = this.getControlPoints();
 		const currentPainter = this.getCurrentPainter();
 		currentPainter.onControlPointEvent(event, controlPoints);
