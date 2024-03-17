@@ -46,6 +46,7 @@ export class Benchmark {
 		this.el.append(this.tray.el);
 
 		this.inp.style.transition = "all 0.2s";
+		document.body.style.transition = "opacity 0.5s";
 		this.benchmarked = false;
 		this.btn.addEventListener("click", this.clickHandler);
 	}
