@@ -46,34 +46,39 @@ export class Benchmark {
 		this.el.append(this.tray.el);
 
 		this.inp.style.transition = "all 0.2s";
+		document.body.style.transition = "opacity 0.5s";
 		this.benchmarked = false;
-		this.btn.addEventListener("click", async () => {
-			if (this.benchmarked) {
-				await this.tray.clearAll();
-				this.inp.disabled = false;
-				this.inp.style.opacity = "";
-				this.btn.innerText = "Benchmark";
-				this.benchmarked = false;
-				return;
-			}
+		this.btn.addEventListener("click", this.clickHandler);
+	}
 
-			const pointCountTarget = parseInt(this.inp.value);
-			const controlPoints = this.canvas.getControlPoints();
+	clickHandler = async () => {
+		if (this.benchmarked) {
+			await this.tray.clearAll();
+			this.inp.disabled = false;
+			this.inp.style.opacity = "";
+			this.btn.innerText = "Benchmark";
+			this.benchmarked = false;
+			return;
+		}
 
-			let error: string = "";
-			if (controlPoints.length == 0) error = "Control points still empty";
-			else if (isNaN(pointCountTarget)) error = "Invalid point count target";
+		const pointCountTarget = parseInt(this.inp.value);
+		const controlPoints = this.canvas.getControlPoints();
 
-			if (error) {
-				const id = "error-" + Math.random();
-				this.tray.addInfo(id, error);
-				setTimeout(() => this.tray.removeInfo(id), 1000);
-				return;
-			}
+		let error: string = "";
+		if (controlPoints.length == 0) error = "Control points still empty";
+		else if (isNaN(pointCountTarget)) error = "Invalid point count target";
 
-			this.btn.innerText = "Benchmarking...";
-			document.body.style.opacity = "0.5";
+		if (error) {
+			const id = "error-" + Math.random();
+			this.tray.addInfo(id, error);
+			setTimeout(() => this.tray.removeInfo(id), 1000);
+			return;
+		}
 
+		this.btn.innerText = "Benchmarking...";
+		document.body.style.opacity = "0.5";
+
+		requestAnimationFrame(() => {
 			requestAnimationFrame(async () => {
 				for (const painter of this.canvas.painters) {
 					const v = await painter.benchmark(controlPoints, pointCountTarget);
@@ -89,5 +94,5 @@ export class Benchmark {
 				document.body.style.opacity = "";
 			});
 		});
-	}
+	};
 }
