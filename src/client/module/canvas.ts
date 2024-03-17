@@ -1,5 +1,5 @@
 import { ControlPoint } from "./controlPoint";
-import { createElement } from "./util";
+import { createElement, styleElement } from "./util";
 import style from "./style.module.css";
 import { Selection } from "./options";
 import { Point } from "./point";
@@ -81,7 +81,13 @@ export class Canvas {
 			this.redraw();
 		};
 		const modeOption = new Selection(["Create and Drag", "Delete"], 0, "Mode");
-		modeOption.onChange = (v) => (this.settings.deleteMode = v == "Delete");
+		modeOption.onChange = (v) => {
+			this.settings.deleteMode = v == "Delete";
+			const classlist = this.controlPointsContainer.classList;
+			if (this.settings.deleteMode) classlist.add(style.controlPointDeleteMode);
+			else classlist.remove(style.controlPointDeleteMode);
+			this.canvas.style.cursor = this.settings.deleteMode ? "default" : "";
+		};
 		const methodOption = new Selection(
 			["Brute Force", "Divide and Conquer"],
 			0,

@@ -16,6 +16,7 @@
 
 .canvas {
 	background: lightblue;
+	cursor: cell;
 }
 
 .controlPoint {
@@ -23,13 +24,30 @@
 	height: 10px;
 	background-color: black;
 	position: absolute;
-	cursor: pointer;
+	cursor: grab;
 	transform: translate(-50%, -50%);
 	border-radius: 100%;
+	transition: border-width 0.2s;
+	border-color: white;
+	border-style: solid;
+	border-width: 0px;
+}
+
+.controlPoint:hover {
+	border-width: 0.7rem;
+}
+
+.controlPoint:active {
+	cursor: grabbing;
 }
 
 .controlPointContainer {
 	display: block;
+}
+
+.controlPointDeleteMode>div {
+	cursor: pointer;
+	border-color: red;
 }
 
 .selectionContainer {
