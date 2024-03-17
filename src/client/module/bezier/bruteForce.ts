@@ -23,6 +23,7 @@ export class Calculator {
 	combination(n: number, k: number) {
 		return (this.factorial(n)/(this.factorial(k) * this.factorial(n-k)));
 	}
+	
 	bernsteinPolynomial(k: number, n: number, u: number) {
 		return ((this.combination(n, k)) * (u**k) * ((1-u)**(n-k)));
 	}
@@ -50,7 +51,7 @@ export class BezierBF {
 		const accumulator: Point[] = [];
 		for(let k = 0; k <= n; k++) {
 			for(let u = 0; u <= iteration; u++) {
-				accumulator.push(this.point(k, n, u));
+				accumulator.push(this.point(k, n, u/iteration));
 			}
 		}
 		return accumulator;
