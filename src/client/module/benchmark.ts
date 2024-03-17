@@ -77,19 +77,21 @@ export class Benchmark {
 		this.btn.innerText = "Benchmarking...";
 		document.body.style.opacity = "0.5";
 
-		requestAnimationFrame(async () => {
-			for (const painter of this.canvas.painters) {
-				const v = await painter.benchmark(controlPoints, pointCountTarget);
-				this.tray.addInfo(
-					Math.random().toString(),
-					`${v.strategyName}\nTime: ${v.msTime}ms\nPoint Count: ${v.pointCount}\nOvershoot: ${v.overshoot}`,
-				);
-			}
-			this.inp.disabled = true;
-			this.inp.style.opacity = "0.5";
-			this.btn.innerText = "Clear";
-			this.benchmarked = true;
-			document.body.style.opacity = "";
+		requestAnimationFrame(() => {
+			requestAnimationFrame(async () => {
+				for (const painter of this.canvas.painters) {
+					const v = await painter.benchmark(controlPoints, pointCountTarget);
+					this.tray.addInfo(
+						Math.random().toString(),
+						`${v.strategyName}\nTime: ${v.msTime}ms\nPoint Count: ${v.pointCount}\nOvershoot: ${v.overshoot}`,
+					);
+				}
+				this.inp.disabled = true;
+				this.inp.style.opacity = "0.5";
+				this.btn.innerText = "Clear";
+				this.benchmarked = true;
+				document.body.style.opacity = "";
+			});
 		});
 	};
 }
