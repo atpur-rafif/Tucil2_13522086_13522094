@@ -1,7 +1,7 @@
 import { ControlPointEvent } from "../canvas";
 import { InputNumber } from "../inputNumber";
 import { Point } from "../point";
-import { createElement, styleElement } from "../util";
+import { createElement, styleElement, waitFrame } from "../util";
 import { BenchmarkParameter, BezierPainter } from "./base";
 
 type LazyPath = [LazyPoint, Point, LazyPoint];
@@ -109,6 +109,10 @@ export class BezierPainterDnC extends BezierPainter {
 		iterationEl.appendChild(maxIteration.el);
 
 		this.configEl.append(iterationEl);
+
+		setTimeout(() => {
+			this.animate();
+		}, 1000);
 	}
 
 	attach() {}
@@ -125,6 +129,37 @@ export class BezierPainterDnC extends BezierPainter {
 
 		this.bezier = new BezierDnC(point);
 		this.iterationInput.changeValue(this.maxIteration);
+	}
+
+	async animate() {
+		let prev: Point[] = this.bezier.generate(0);
+		for (let i = 0; i < this.maxIteration; ++i) {
+			const next = this.bezier.generate(i);
+
+			const midPrev: Point[] = [];
+			const now: Point[] = [];
+			for (let j = 0; j < prev.length - 1; ++j) {
+				now.push(prev[j]);
+				now.push(Point.midPoint(prev[j], prev[j + 1]));
+				midPrev.push(Point.midPoint(prev[j], prev[j + 1]));
+			}
+			now.push(prev[prev.length - 1]);
+
+			const fps = 30;
+			for (let j = 0; j < fps; ++j) {
+				const t = j / fps;
+				for (let k = 0; k < midPrev.length; ++k) {
+					const nextIdx = 1 + 2 * k;
+					now[nextIdx] = Point.LERP(midPrev[k], next[nextIdx], t);
+				}
+
+				this.draw(now);
+
+				await waitFrame();
+			}
+
+			prev = next;
+		}
 	}
 
 	getCurrentResult(): Point[] {

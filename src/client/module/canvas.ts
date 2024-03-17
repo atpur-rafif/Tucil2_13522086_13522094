@@ -139,6 +139,15 @@ export class Canvas {
 
 		window.addEventListener("resize", this.resizeCanvas.bind(this));
 		this.resizeCanvas();
+
+		setTimeout(() => {
+			const randInt = () => Math.random() * 300 + 100;
+			const randPoint = () => [randInt(), randInt()];
+			for (let i = 0; i < 3; ++i) {
+				const [x, y] = randPoint();
+				this.createControlPoint(x, y);
+			}
+		}, 500);
 	}
 
 	drawer(point: Point[]) {
