@@ -231,3 +231,15 @@
 	flex-direction: row;
 	gap: 1rem;
 }
+
+.controlPointHide>div {
+	display: none;
+}
+
+.controlPointHide div:first-child {
+	display: block !important;
+}
+
+.controlPointHide div:last-child {
+	display: block !important;
+}

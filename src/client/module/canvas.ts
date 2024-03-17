@@ -75,6 +75,12 @@ export class Canvas {
 		this.configTray.classList.add(style.canvasConfigTray);
 		this.el.appendChild(this.configTray);
 
+		const showPointOption = new Selection(["Off", "On"], 1, "Show Point");
+		showPointOption.onChange = (v) => {
+			const classList = this.controlPointsContainer.classList;
+			if (v == "Off") classList.add(style.controlPointHide);
+			else classList.remove(style.controlPointHide);
+		};
 		const linePathOption = new Selection(["Off", "On"], 0, "Line Path");
 		linePathOption.onChange = (v) => {
 			this.settings.linePath = v == "On";
@@ -133,6 +139,7 @@ export class Canvas {
 		const optionContainer = createElement("div");
 		optionContainer.classList.add(style.canvasOption);
 		optionContainer.appendChild(linePathOption.el);
+		optionContainer.appendChild(showPointOption.el);
 		optionContainer.appendChild(modeOption.el);
 		optionContainer.appendChild(methodOption.el);
 		this.el.appendChild(optionContainer);
