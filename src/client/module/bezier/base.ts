@@ -13,6 +13,7 @@ export abstract class BezierPainter {
 	abstract attach(): void;
 	abstract detach(): void;
 	abstract onControlPointEvent(event: ControlPointEvent, point: Point[]): void;
+	abstract getCurrentResult(): Point[];
 	abstract benchmark(
 		controlPoints: Point[],
 		targetPointCount: number,

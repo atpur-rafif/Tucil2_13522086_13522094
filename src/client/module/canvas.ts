@@ -81,7 +81,13 @@ export class Canvas {
 			this.redraw();
 		};
 		const modeOption = new Selection(["Create and Drag", "Delete"], 0, "Mode");
-		modeOption.onChange = (v) => (this.settings.deleteMode = v == "Delete");
+		modeOption.onChange = (v) => {
+			this.settings.deleteMode = v == "Delete";
+			const classlist = this.controlPointsContainer.classList;
+			if (this.settings.deleteMode) classlist.add(style.controlPointDeleteMode);
+			else classlist.remove(style.controlPointDeleteMode);
+			this.canvas.style.cursor = this.settings.deleteMode ? "default" : "";
+		};
 		const methodOption = new Selection(
 			["Brute Force", "Divide and Conquer"],
 			0,
@@ -90,11 +96,45 @@ export class Canvas {
 		methodOption.onChange = (v) =>
 			(this.settings.useDivideAndConquer = v == "Divide and Conquer");
 
+		const clearButton = createElement("button", { innerText: "🗑" });
+		clearButton.classList.add(style.canvasButton);
+		clearButton.addEventListener("click", () => {
+			while (this.controlPoints.length > 0)
+				this.removeControlPoint(this.controlPoints[0]);
+		});
+
+		const downloadButton = createElement("button", { innerText: "↓" });
+		downloadButton.addEventListener("click", () => {
+			const input = this.getControlPoints();
+			const inputStr = input.map(({ x, y }) => [x, y]).join("\n");
+
+			const output = this.getCurrentPainter().getCurrentResult();
+			const outputStr = output.map(({ x, y }) => [x, y]).join("\n");
+
+			const str = `Control Points (${input.length} points):\n${inputStr}\n\nCurve (${output.length} points):\n${outputStr}`;
+
+			const blob = new Blob([str], { type: "text/txt" });
+			// @ts-ignore
+			const elem = createElement("a", {
+				href: window.URL.createObjectURL(blob),
+				download: "bezier.txt",
+			});
+			document.body.appendChild(elem);
+			elem.click();
+			document.body.removeChild(elem);
+		});
+		downloadButton.classList.add(style.canvasButton);
+
+		const buttonContainer = createElement("div");
+		buttonContainer.classList.add(style.canvasButtonContainer);
+		buttonContainer.append(downloadButton, clearButton);
+		this.el.appendChild(buttonContainer);
+
 		const optionContainer = createElement("div");
 		optionContainer.classList.add(style.canvasOption);
-		optionContainer.appendChild(methodOption.el);
-		optionContainer.appendChild(modeOption.el);
 		optionContainer.appendChild(linePathOption.el);
+		optionContainer.appendChild(modeOption.el);
+		optionContainer.appendChild(methodOption.el);
 		this.el.appendChild(optionContainer);
 
 		window.addEventListener("resize", this.resizeCanvas.bind(this));
@@ -111,7 +151,7 @@ export class Canvas {
 	}
 
 	dispatchControlPointEvent(event: ControlPointEvent) {
-		this.benchmark.tray.clearAll();
+		if (this.benchmark.benchmarked) this.benchmark.clickHandler();
 		const controlPoints = this.getControlPoints();
 		const currentPainter = this.getCurrentPainter();
 		currentPainter.onControlPointEvent(event, controlPoints);
