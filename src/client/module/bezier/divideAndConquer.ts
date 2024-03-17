@@ -3,6 +3,7 @@ import { InputNumber } from "../inputNumber";
 import { Point } from "../point";
 import { createElement, styleElement, waitFrame } from "../util";
 import { BenchmarkParameter, BezierPainter } from "./base";
+import style from "../style.module.css";
 
 type LazyPath = [LazyPoint, Point, LazyPoint];
 export class LazyPoint {
@@ -81,18 +82,25 @@ export class BezierPainterDnC extends BezierPainter {
 	configEl: HTMLDivElement;
 	iteration: number = 0;
 	maxIteration: number = 8;
+	animateButton: HTMLElement;
+	animating: boolean;
 
 	iterationInput: InputNumber;
 
 	constructor() {
 		super();
 		this.configEl = createElement("div");
+		styleElement(this.configEl, {
+			display: "flex",
+			flexDirection: "column",
+			gap: "0.5rem",
+		});
 
 		const iterationEl = createElement("div");
 		styleElement(iterationEl, {
 			display: "flex",
 			flexDirection: "row",
-			gap: "10px",
+			gap: "0.5rem",
 		});
 
 		this.iterationInput = new InputNumber("Iteration", this.iteration);
@@ -108,11 +116,19 @@ export class BezierPainterDnC extends BezierPainter {
 		iterationEl.appendChild(this.iterationInput.el);
 		iterationEl.appendChild(maxIteration.el);
 
-		this.configEl.append(iterationEl);
+		this.animating = false;
+		this.animateButton = createElement("button", {
+			innerText: "Animate",
+		});
+		styleElement(this.animateButton, {
+			backgroundColor: "white",
+			borderRadius: "0.3rem",
+			padding: "0.5rem",
+		});
+		this.animateButton.addEventListener("click", this.animationHandler);
 
-		setTimeout(() => {
-			this.animate();
-		}, 1000);
+		this.configEl.append(iterationEl);
+		this.configEl.append(this.animateButton);
 	}
 
 	attach() {}
@@ -120,6 +136,21 @@ export class BezierPainterDnC extends BezierPainter {
 	detach() {
 		this.killAnimation();
 	}
+
+	animationHandler = () => {
+		this.animating = !this.animating;
+		if (this.animating) {
+			document.body.style.pointerEvents = "none";
+			this.animateButton.style.pointerEvents = "auto";
+			this.animateButton.innerText = "Stop";
+			this.animate();
+		} else {
+			document.body.style.pointerEvents = "";
+			this.animateButton.style.pointerEvents = "";
+			this.animateButton.innerText = "Animate";
+			document.body.classList.remove(style.onAnimation);
+		}
+	};
 
 	onControlPointEvent(_: ControlPointEvent, point: Point[]) {
 		if (point.length <= 1) {
@@ -133,7 +164,9 @@ export class BezierPainterDnC extends BezierPainter {
 
 	async animate() {
 		let prev: Point[] = this.bezier.generate(0);
-		for (let i = 0; i < this.maxIteration; ++i) {
+		for (let i = 0; i <= this.maxIteration; ++i) {
+			if (!this.animating) return;
+			this.iterationInput.changeDisplayValue(i);
 			const next = this.bezier.generate(i);
 
 			const midPrev: Point[] = [];
@@ -160,6 +193,7 @@ export class BezierPainterDnC extends BezierPainter {
 
 			prev = next;
 		}
+		this.animationHandler();
 	}
 
 	getCurrentResult(): Point[] {
