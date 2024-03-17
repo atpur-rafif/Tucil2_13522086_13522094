@@ -21,6 +21,7 @@ export type ControlPointEvent =
 
 export class Canvas {
 	ctx: CanvasRenderingContext2D;
+	benchmark: Benchmark;
 
 	el: HTMLDivElement;
 	controlPointsContainer: HTMLDivElement;
@@ -65,9 +66,9 @@ export class Canvas {
 				}),
 		);
 
-		const benchmark = new Benchmark(this);
-		benchmark.el.classList.add(style.canvasBenchmark);
-		this.el.append(benchmark.el);
+		this.benchmark = new Benchmark(this);
+		this.benchmark.el.classList.add(style.canvasBenchmark);
+		this.el.append(this.benchmark.el);
 
 		this.configTray = createElement("div");
 		this.configTray.appendChild(this.getCurrentPainter().configEl);
@@ -110,6 +111,7 @@ export class Canvas {
 	}
 
 	dispatchControlPointEvent(event: ControlPointEvent) {
+		this.benchmark.tray.clearAll();
 		const controlPoints = this.getControlPoints();
 		const currentPainter = this.getCurrentPainter();
 		currentPainter.onControlPointEvent(event, controlPoints);

@@ -37,13 +37,13 @@ export class InfoTray {
 					resolver();
 				});
 			});
-			return promise;
 		});
+		return promise;
 	}
 
 	removeInfo(id: string): Promise<void> {
 		const target = this.message[id];
-		if (!target) return;
+		if (!target) return Promise.resolve();
 
 		let resolver: () => void;
 		const promise = new Promise<void>((r) => (resolver = r));
@@ -57,5 +57,11 @@ export class InfoTray {
 		});
 		target.el.classList.remove(style.expandInfoItem);
 		return promise;
+	}
+
+	clearAll() {
+		return Promise.all(
+			Object.keys(this.message).map((id) => this.removeInfo(id)),
+		);
 	}
 }
