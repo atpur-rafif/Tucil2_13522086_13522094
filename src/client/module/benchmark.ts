@@ -45,11 +45,17 @@ export class Benchmark {
 		this.btn.addEventListener("click", () => {
 			const pointCountTarget = parseInt(this.inp.value);
 			const controlPoints = this.canvas.getControlPoints();
-			this.canvas.painters.forEach((painter) => {
-				painter.benchmark(controlPoints, pointCountTarget).then((v) => {
-					this.tray.addInfo("", JSON.stringify(v, null, 4));
-				});
-			});
+
+			(async () => {
+				for (const painter of this.canvas.painters) {
+					await this.tray.removeInfo(painter.constructor.name);
+					const v = await painter.benchmark(controlPoints, pointCountTarget);
+					await this.tray.addInfo(
+						painter.constructor.name,
+						`${v.strategyName}\nTime: ${v.msTime}ms\nPoint Count: ${v.pointCount}\nOvershoot: ${v.overshoot}`,
+					);
+				}
+			})();
 		});
 	}
 }

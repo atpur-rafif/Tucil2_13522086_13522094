@@ -17,7 +17,7 @@ export class InfoTray {
 		this.message = {};
 	}
 
-	addInfo(id: string, msg: string) {
+	addInfo(id: string, msg: string): Promise<void> {
 		const el = createElement("div");
 		el.classList.add(style.infoItem);
 		const aniEl = createElement("div");
@@ -27,21 +27,35 @@ export class InfoTray {
 		this.el.appendChild(el);
 		this.message[id] = { el, msg };
 
+		let resolver: () => void;
+		const promise = new Promise<void>((r) => (resolver = r));
+
 		requestAnimationFrame(() => {
 			requestAnimationFrame(() => {
 				el.classList.add(style.expandInfoItem);
+				el.addEventListener("transitionend", () => {
+					resolver();
+				});
 			});
+			return promise;
 		});
 	}
 
-	removeInfo(id: string) {
+	removeInfo(id: string): Promise<void> {
 		const target = this.message[id];
 		if (!target) return;
+
+		let resolver: () => void;
+		const promise = new Promise<void>((r) => (resolver = r));
+
 		target.el.addEventListener("transitionend", () => {
-			if (target.el.parentElement && target.el.getAnimations().length == 0)
+			if (target.el.parentElement && target.el.getAnimations().length == 0) {
 				this.el.removeChild(target.el);
-			delete this.message[id];
+				delete this.message[id];
+				resolver();
+			}
 		});
 		target.el.classList.remove(style.expandInfoItem);
+		return promise;
 	}
 }
