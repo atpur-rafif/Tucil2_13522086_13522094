@@ -1,5 +1,5 @@
 import { ControlPoint } from "./controlPoint";
-import { createElement, styleElement } from "./util";
+import { createElement } from "./util";
 import style from "./style.module.css";
 import { Selection } from "./options";
 import { Point } from "./point";
@@ -108,9 +108,9 @@ export class Canvas {
 
 		const optionContainer = createElement("div");
 		optionContainer.classList.add(style.canvasOption);
-		optionContainer.appendChild(methodOption.el);
-		optionContainer.appendChild(modeOption.el);
 		optionContainer.appendChild(linePathOption.el);
+		optionContainer.appendChild(modeOption.el);
+		optionContainer.appendChild(methodOption.el);
 		this.el.appendChild(optionContainer);
 
 		window.addEventListener("resize", this.resizeCanvas.bind(this));
