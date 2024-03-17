@@ -28,6 +28,10 @@
 	border-radius: 100%;
 }
 
+.controlPointContainer {
+	display: block;
+}
+
 .selectionContainer {
 	display: flex;
 	flex-direction: column;
@@ -69,6 +73,104 @@
 	white-space: nowrap;
 }
 
+.inputNumberContainer {
+	display: flex;
+	flex-direction: column;
+	background-color: white;
+	border-radius: 0.3rem;
+	align-items: center;
+}
+
+.inputNumberContainer button {
+	background-color: transparent;
+	width: 100%;
+	padding: 0.3rem;
+}
+
+.inputNumberContainer button:hover {
+	background-color: lightgray;
+}
+
+.inputNumberContainer p {
+	margin: 0.2rem;
+	font-size: 0.8rem;
+}
+
+.inputNumberContainer input {
+	appearance: none;
+	-webkit-appearance: none;
+	width: 50px;
+	border: none;
+	background-color: transparent;
+	outline: none;
+	transition: all 0.1s;
+	text-align: center;
+	font-size: 1rem;
+}
+
+.infoTray {
+	display: flex;
+	flex-direction: column;
+	font-size: 0.9rem;
+}
+
+.infoItem {
+	display: grid;
+	grid-template-rows: 0fr;
+	transition: grid-template-rows 0.2s, opacity 0.05s, transform 0.2s;
+	transform: translateX(-10vw);
+	align-self: flex-start;
+	padding: 0rem;
+	opacity: 0;
+}
+
+.expandInfoItem {
+	grid-template-rows: 1fr;
+	transform: translateX(0rem);
+	opacity: 1;
+}
+
+.expandInfoItem>div {
+	margin-top: 0.5rem !important;
+}
+
+.infoItem>div {
+	display: block;
+	overflow: hidden;
+	background-color: white;
+	border-radius: 0.5rem;
+	margin: 0rem;
+}
+
+.infoItem>div>p {
+	margin: 0.8rem;
+}
+
+.benchmark {
+	display: flex;
+	flex-direction: column;
+}
+
+.benchmark button {
+	background-color: white;
+	border-radius: 0rem 0rem 0.4rem 0.4rem;
+}
+
+.benchmark button:hover {
+	background-color: lightgray;
+}
+
+.benchmark input {
+	border: none;
+	outline: none;
+	border-bottom: solid black 0.05rem;
+	font-size: 1rem;
+}
+
+.benchmarkInfoTray {
+	font-size: 0.8rem;
+}
+
 .canvasOption {
 	position: absolute;
 	bottom: 0px;
@@ -78,4 +180,18 @@
 	display: flex;
 	flex-direction: row;
 	gap: 3rem;
+}
+
+.canvasConfigTray {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	padding: 2%;
+}
+
+.canvasBenchmark {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	padding: 2%;
 }

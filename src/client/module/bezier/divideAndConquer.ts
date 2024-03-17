@@ -1,6 +1,8 @@
-import { Canvas } from "../canvas";
+import { ControlPointEvent } from "../canvas";
+import { InputNumber } from "../inputNumber";
 import { Point } from "../point";
-import { BezierPainter } from "./base";
+import { createElement, styleElement } from "../util";
+import { BenchmarkParameter, BezierPainter } from "./base";
 
 type LazyPath = [LazyPoint, Point, LazyPoint];
 export class LazyPoint {
@@ -73,38 +75,78 @@ export class BezierDnC {
 	}
 }
 
-export class BezierPainterDnC implements BezierPainter {
-	canvas: Canvas;
+export class BezierPainterDnC extends BezierPainter {
 	bezier: BezierDnC;
-	target: number = 8;
 	timerId: number;
+	configEl: HTMLDivElement;
+	iteration: number = 0;
+	maxIteration: number = 8;
 
-	constructor(canvas: Canvas) {
-		this.canvas = canvas;
-	}
+	iterationInput: InputNumber;
 
-	draw(point: Point[]) {
-		this.bezier = new BezierDnC(point);
-		const bezier = this.bezier.generate(this.target);
-		this.canvas.setBezierPath(bezier);
-	}
+	constructor() {
+		super();
+		this.configEl = createElement("div");
 
-	animateDraw(point: Point[]) {
-		this.bezier = new BezierDnC(point);
+		const iterationEl = createElement("div");
+		styleElement(iterationEl, {
+			display: "flex",
+			flexDirection: "row",
+			gap: "10px",
+		});
 
-		let i = 0;
-		clearTimeout(this.timerId);
-		const fn = () => {
-			this.canvas.setBezierPath(this.bezier.generate(i));
-			++i;
-			if (i < this.target) this.timerId = setTimeout(fn, 100) as any;
+		this.iterationInput = new InputNumber("Iteration", this.iteration);
+		const maxIteration = new InputNumber("Auto Max", this.maxIteration);
+		this.iterationInput.onChange = (value) => {
+			this.iteration = value;
+			this.draw(this.bezier.generate(this.iteration));
 		};
-		fn();
+		maxIteration.onChange = (value) => {
+			this.maxIteration = value;
+		};
+
+		iterationEl.appendChild(this.iterationInput.el);
+		iterationEl.appendChild(maxIteration.el);
+
+		this.configEl.append(iterationEl);
 	}
 
-	drawFirstAnimationFrame(point: Point[]) {
+	attach() {}
+
+	detach() {
+		this.killAnimation();
+	}
+
+	onControlPointEvent(_: ControlPointEvent, point: Point[]) {
+		if (point.length <= 1) {
+			this.draw([]);
+			return;
+		}
+
 		this.bezier = new BezierDnC(point);
-		this.canvas.setBezierPath(this.bezier.generate(0));
+		this.iterationInput.changeDisplayValue(this.maxIteration);
+		this.draw(this.bezier.generate(this.maxIteration));
+	}
+
+	benchmark(
+		controlPoints: Point[],
+		targetPointCount: number,
+	): Promise<BenchmarkParameter> {
+		const start = performance.now();
+		const bezier = new BezierDnC(controlPoints);
+		let len = 0;
+		let i = 0;
+		while (len <= targetPointCount) {
+			len = bezier.generate(i++).length;
+		}
+		const end = performance.now();
+
+		return Promise.resolve({
+			msTime: end - start,
+			overshoot: len - targetPointCount,
+			pointCount: len,
+			strategyName: "Divide and Conquer",
+		});
 	}
 
 	killAnimation() {
