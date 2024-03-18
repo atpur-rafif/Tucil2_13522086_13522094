@@ -90,8 +90,7 @@ export class BezierPainterDnC extends BezierPainter {
 	bezier: BezierDnC;
 	timerId: number;
 	configEl: HTMLDivElement;
-	iteration: number = 0;
-	maxIteration: number = 5;
+	iteration: number = 8;
 	animateButton: HTMLElement;
 	animating: boolean;
 	intermediatePoint: boolean;
@@ -107,26 +106,12 @@ export class BezierPainterDnC extends BezierPainter {
 			gap: "0.5rem",
 		});
 
-		const iterationEl = createElement("div");
-		styleElement(iterationEl, {
-			display: "flex",
-			flexDirection: "row",
-			gap: "0.5rem",
-		});
-
 		this.iterationInput = new InputNumber("Iteration", this.iteration);
-		const maxIteration = new InputNumber("Auto Max", this.maxIteration);
 		this.iterationInput.onChange = (value) => {
 			this.iteration = value;
 			this.draw(this.bezier.generate(this.iteration));
 			if (this.intermediatePoint) this.drawIntermediatePoint();
 		};
-		maxIteration.onChange = (value) => {
-			this.maxIteration = value;
-		};
-
-		iterationEl.appendChild(this.iterationInput.el);
-		iterationEl.appendChild(maxIteration.el);
 
 		this.animating = false;
 		this.animateButton = createElement("button", {
@@ -151,7 +136,7 @@ export class BezierPainterDnC extends BezierPainter {
 		};
 
 		this.configEl.append(intermediatePoint.el);
-		this.configEl.append(iterationEl);
+		this.configEl.append(this.iterationInput.el);
 		this.configEl.append(this.animateButton);
 	}
 
@@ -182,7 +167,7 @@ export class BezierPainterDnC extends BezierPainter {
 		}
 
 		this.bezier = new BezierDnC(point);
-		this.iterationInput.changeValue(this.maxIteration);
+		this.iterationInput.changeValue(this.iteration);
 	}
 
 	drawIntermediatePoint() {
@@ -231,8 +216,9 @@ export class BezierPainterDnC extends BezierPainter {
 	}
 
 	async animate() {
+		const target = this.iteration
 		let prev: Point[] = this.bezier.generate(0);
-		for (let i = 0; i <= this.maxIteration; ++i) {
+		for (let i = 0; i <= target; ++i) {
 			if (!this.animating) return;
 			this.iterationInput.changeDisplayValue(i);
 			this.iteration = i;

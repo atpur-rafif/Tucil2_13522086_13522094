@@ -61,6 +61,7 @@
 .selectionFieldName {
 	margin: 0px;
 	font-size: 0.8rem;
+	white-space: nowrap;
 }
 
 .selectionItem {
