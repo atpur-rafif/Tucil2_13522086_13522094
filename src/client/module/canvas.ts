@@ -1,5 +1,5 @@
 import { ControlPoint } from "./controlPoint";
-import { createElement } from "./util";
+import { createElement, styleElement } from "./util";
 import style from "./style.module.css";
 import { Selection } from "./options";
 import { Point } from "./point";
@@ -85,6 +85,18 @@ export class Canvas {
 
 		this.benchmark = new Benchmark(this);
 		this.benchmark.el.classList.add(style.canvasBenchmark);
+		const position = createElement("div", { innerText: "Position: -,-" })
+		styleElement(position, { marginBottom: "0.5rem" })
+		document.body.addEventListener("pointerleave", () => {
+			position.innerText = "Position: -,-"
+		})
+		document.body.addEventListener("pointermove", (e) => {
+			const { x: offsetX, y: offsetY, scale } = this.view
+			const x = ((e.x - offsetX) / scale).toFixed(2)
+			const y = ((e.y - offsetY) / scale).toFixed(2)
+			position.innerText = `Position: ${x},${y}`
+		})
+		this.benchmark.el.insertAdjacentElement("afterbegin", position)
 		this.el.append(this.benchmark.el);
 
 		this.configTray = createElement("div");
