@@ -10,8 +10,14 @@ import { Benchmark } from "./benchmark";
 type CanvasSettings = {
 	linePath: boolean;
 	useDivideAndConquer: boolean;
-	deleteMode: boolean;
+	moveMode: boolean;
 };
+
+type CanvasView = {
+	x: number,
+	y: number,
+	scale: number
+}
 
 export type ControlPointEvent =
 	| "start_edit"
@@ -37,8 +43,14 @@ export class Canvas {
 	settings: CanvasSettings = {
 		linePath: false,
 		useDivideAndConquer: true,
-		deleteMode: false,
+		moveMode: false,
 	};
+
+	view: CanvasView = {
+		scale: 1,
+		x: 0,
+		y: 0
+	}
 
 	constructor() {
 		this.controlPoints = [];
@@ -60,10 +72,10 @@ export class Canvas {
 		this.painters = [new BezierPainterDnC()];
 		this.painters.forEach(
 			(painter) =>
-				(painter.draw = (path) => {
-					this.bezierPath = path;
-					this.redraw();
-				}),
+			(painter.draw = (path) => {
+				this.bezierPath = path;
+				this.redraw();
+			}),
 		);
 
 		this.benchmark = new Benchmark(this);
@@ -86,14 +98,15 @@ export class Canvas {
 			this.settings.linePath = v == "On";
 			this.dispatchControlPointEvent("edit");
 		};
-		const modeOption = new Selection(["Create and Drag", "Delete"], 0, "Mode");
-		modeOption.onChange = (v) => {
-			this.settings.deleteMode = v == "Delete";
+		const modeOption = new Selection(["Create and Delete", "Move and Drag"], 0, "Mode");
+		modeOption.onChange = () => {
+			this.settings.moveMode = modeOption.getSelectedIndex() == 1;
 			const classlist = this.controlPointsContainer.classList;
-			if (this.settings.deleteMode) classlist.add(style.controlPointDeleteMode);
-			else classlist.remove(style.controlPointDeleteMode);
-			this.canvas.style.cursor = this.settings.deleteMode ? "default" : "";
+			if (this.settings.moveMode) classlist.add(style.controlPointMoveMode);
+			else classlist.remove(style.controlPointMoveMode);
+			this.canvas.style.cursor = this.settings.moveMode ? "move" : "";
 		};
+
 		const methodOption = new Selection(
 			["Brute Force", "Divide and Conquer"],
 			0,
@@ -147,12 +160,50 @@ export class Canvas {
 		window.addEventListener("resize", this.resizeCanvas.bind(this));
 		this.resizeCanvas();
 
+		modeOption.setSelectedByIndex(1);
+
 		setTimeout(() => {
 			const randInt = () => 100 + Math.random() * 300;
 			for (let i = 0; i < 3; ++i) {
 				this.createControlPoint(randInt(), randInt());
 			}
 		}, 500);
+
+
+		let canvasDragState = {
+			dragged: false,
+			startX: 0,
+			startY: 0
+		}
+		this.canvas.addEventListener("pointerdown", ({ x, y }) => {
+			if (!this.settings.moveMode) return
+			canvasDragState = {
+				dragged: true,
+				startX: x - this.view.x, startY: y - this.view.y
+			}
+		})
+		this.canvas.addEventListener("pointerup", () => canvasDragState.dragged = false)
+		this.canvas.addEventListener("pointermove", ({ x, y }) => {
+			if (!canvasDragState.dragged) return;
+			const { startX, startY } = canvasDragState;
+			this.view.x = x - startX
+			this.view.y = y - startY
+			this.updateView();
+		})
+		this.canvas.addEventListener("wheel", (v) => {
+			const delta = v.deltaY < 0 ? (1 / 0.9) : 0.9
+			this.view.scale *= delta
+			this.updateView();
+		})
+	}
+
+	updateView() {
+		const { scale, x, y } = this.view
+		this.ctx.resetTransform()
+		this.ctx.translate(x, y)
+		this.ctx.scale(scale, scale)
+		this.controlPointsContainer.style.transform = `translate(${x}px, ${y}px) scale(${scale})`
+		this.dispatchControlPointEvent("edit");
 	}
 
 	drawer(point: Point[]) {
@@ -175,12 +226,12 @@ export class Canvas {
 		return this.painters[this.currentPainterIndex];
 	}
 
-	setCurrentPainter() {}
+	setCurrentPainter() { }
 
 	resizeCanvas() {
 		this.canvas.width = window.innerWidth;
 		this.canvas.height = window.innerHeight;
-		this.dispatchControlPointEvent("count_edit");
+		this.updateView();
 	}
 
 	redraw() {
@@ -218,15 +269,19 @@ export class Canvas {
 	}
 
 	onClick(this: Canvas, ev: MouseEvent) {
-		if (this.settings.deleteMode) return;
+		if (this.settings.moveMode) return;
 		const { x: elX, y: elY } = this.canvas.getBoundingClientRect();
 		const { x: pageX, y: pageY } = ev;
-		const x = pageX - elX;
-		const y = pageY - elY;
+		const { x: offsetX, y: offsetY, scale } = this.view;
+		const x = (pageX - elX - offsetX) / scale;
+		const y = (pageY - elY - offsetY) / scale;
 		this.createControlPoint(x, y);
 	}
 
 	clear() {
+		this.ctx.save();
+		this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+		this.ctx.restore();
 	}
 }

@@ -37,7 +37,7 @@ export class ControlPoint {
 	}
 
 	onPointerDown = () => {
-		if (this.canvas.settings.deleteMode) {
+		if (!this.canvas.settings.moveMode) {
 			this.canvas.removeControlPoint(this);
 			return;
 		}
@@ -49,8 +49,9 @@ export class ControlPoint {
 		if (!this.dragged) return;
 		const { x: elX, y: elY } = this.canvas.canvas.getBoundingClientRect();
 		const { x: pageX, y: pageY } = ev;
-		const x = pageX - elX;
-		const y = pageY - elY;
+		const { x: offsetX, y: offsetY, scale } = this.canvas.view;
+		const x = (pageX - elX - offsetX) / scale;
+		const y = (pageY - elY - offsetY) / scale;
 		this.setPosition(x, y);
 		this.canvas.dispatchControlPointEvent("edit");
 	};

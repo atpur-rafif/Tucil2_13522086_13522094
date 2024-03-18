@@ -31,6 +31,10 @@
 	border-color: white;
 	border-style: solid;
 	border-width: 0px;
+	cursor: pointer;
+	border-color: red;
+
+
 }
 
 .controlPoint:hover {
@@ -43,11 +47,12 @@
 
 .controlPointContainer {
 	display: block;
+	position: absolute;
+	background: transparent;
 }
 
-.controlPointDeleteMode>div {
-	cursor: pointer;
-	border-color: red;
+.controlPointMoveMode>div {
+	border-color: white;
 }
 
 .selectionContainer {
