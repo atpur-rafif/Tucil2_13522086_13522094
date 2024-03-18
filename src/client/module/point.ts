@@ -24,4 +24,8 @@ export class Point {
 	static add(a: Point, b: Point) {
 		return new Point(a.x + b.x, a.y + b.y);
 	}
+
+	static manhattanDistance(a: Point, b: Point) {
+		return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+	}
 }

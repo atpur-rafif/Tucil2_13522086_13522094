@@ -26,7 +26,9 @@ export type ControlPointEvent =
 	| "end_edit"
 	| "count_edit"
 	| "redraw"
-	| "reset";
+	| "reset"
+	| "attach"
+	| "detach";
 
 export class Canvas {
 	ctx: CanvasRenderingContext2D;
@@ -109,11 +111,13 @@ export class Canvas {
 			else classlist.remove(style.controlPointMoveMode);
 			this.canvas.style.cursor = this.settings.moveMode ? "move" : "";
 		};
-		this.canvas.addEventListener("contextmenu", (e) => {
+		const fn = (e: Event) => {
 			e.preventDefault();
 			modeOption.setSelectedByIndex(modeOption.getSelectedIndex() ? 0 : 1)
-		})
-		this.controlPointsContainer.addEventListener("contextmenu", (e) => e.preventDefault())
+
+		}
+		this.canvas.addEventListener("contextmenu", fn)
+		this.controlPointsContainer.addEventListener("contextmenu", fn)
 
 		const methodOption = new Selection(
 			["Brute Force", "Divide and Conquer"],
@@ -180,7 +184,9 @@ export class Canvas {
 				startX: e.x - this.view.x, startY: e.y - this.view.y
 			}
 		})
-		this.canvas.addEventListener("pointerup", () => canvasDragState.dragged = false)
+		this.canvas.addEventListener("pointerup", () => {
+			canvasDragState.dragged = false
+		})
 		this.canvas.addEventListener("pointermove", ({ x, y }) => {
 			if (!canvasDragState.dragged) return;
 			const { startX, startY } = canvasDragState;
@@ -208,6 +214,13 @@ export class Canvas {
 
 		window.addEventListener("resize", this.resizeCanvas.bind(this));
 		this.resizeCanvas();
+
+		// setTimeout(() => {
+		// 	const randInt = () => Math.random() * 300 + 100
+		// 	for (let i = 0; i < 4; ++i) {
+		// 		this.createControlPoint(randInt(), randInt());
+		// 	}
+		// }, 1000)
 	}
 
 	updateView() {
@@ -247,8 +260,10 @@ export class Canvas {
 
 	setCurrentPainter(idx: number) {
 		this.getCurrentPainter().configEl.classList.remove(style.canvasConfigTrayItemOpened)
+		this.dispatchControlPointEvent("detach")
 		this.currentPainterIndex = idx
 		this.getCurrentPainter().configEl.classList.add(style.canvasConfigTrayItemOpened)
+		this.dispatchControlPointEvent("attach")
 		this.dispatchControlPointEvent("reset")
 	}
 

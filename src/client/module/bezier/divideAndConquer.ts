@@ -70,7 +70,7 @@ export class BezierDnC {
 	}
 
 	static traverse(lazy: LazyPoint, depth: number, accumulator: Point[]) {
-		if (depth == 0) return;
+		if (depth === 0) return;
 		const [left, mid, right] = lazy.get();
 		BezierDnC.traverse(left, depth - 1, accumulator);
 		accumulator.push(mid);
@@ -90,10 +90,12 @@ export class BezierPainterDnC extends BezierPainter {
 	bezier: BezierDnC;
 	timerId: number;
 	configEl: HTMLDivElement;
-	iteration: number = 8;
+	iteration: number = 1;
 	animateButton: HTMLElement;
 	animating: boolean;
-	intermediatePoint: boolean;
+
+	intermediate: boolean = false;
+	incremental: boolean = false;
 
 	iterationInput: InputNumber;
 
@@ -110,8 +112,7 @@ export class BezierPainterDnC extends BezierPainter {
 		this.iterationInput.onChange = (value) => {
 			if (!this.bezier) return
 			this.iteration = value;
-			this.draw(this.bezier.generate(this.iteration));
-			if (this.intermediatePoint) this.drawIntermediatePoint();
+			this.drawAll();
 		};
 
 		this.animating = false;
@@ -125,20 +126,38 @@ export class BezierPainterDnC extends BezierPainter {
 		});
 		this.animateButton.addEventListener("click", this.animationHandler);
 
-		this.intermediatePoint = false;
 		const intermediatePoint = new Selection(
 			["Off", "On"],
 			0,
 			"Intermediate Point",
 		);
+		const incremental = new Selection(
+			["Off", "On"],
+			0,
+			"Incremental",
+		);
+		incremental.onChange = (v) => {
+			this.incremental = v == "On";
+			if (this.intermediate && this.incremental) intermediatePoint.setSelectedByName("Off")
+			this.drawAll();
+		};
 		intermediatePoint.onChange = (v) => {
-			this.intermediatePoint = v == "On";
-			this.iterationInput.changeValue(this.iteration);
+			this.intermediate = v == "On";
+			if (this.intermediate && this.incremental) incremental.setSelectedByName("Off")
+			this.drawAll();
 		};
 
 		this.configEl.append(intermediatePoint.el);
+		this.configEl.append(incremental.el);
 		this.configEl.append(this.iterationInput.el);
 		this.configEl.append(this.animateButton);
+	}
+
+	drawAll() {
+		this.draw(this.bezier.generate(this.iteration));
+		if (this.intermediate) this.drawIntermediatePoint()
+		if (this.incremental) this.incrementalGeneration();
+		else clearTimeout(this.incrementalTimerId)
 	}
 
 	animationHandler = () => {
@@ -157,18 +176,37 @@ export class BezierPainterDnC extends BezierPainter {
 	};
 
 	onControlPointEvent(v: ControlPointEvent, point: Point[]) {
+		if (v == "detach") {
+			clearTimeout(this.incrementalTimerId)
+			return
+		}
+
 		if (point.length <= 1) {
 			this.draw([]);
 			return;
 		}
+		this.bezier = new BezierDnC(point);
+
+		if (this.incremental && (v == "edit" || v == "start_edit")) {
+			this.draw(this.bezier.generate(this.iteration));
+			return;
+		};
 
 		if (v == "redraw") {
-			this.iterationInput.changeValue(this.iteration);
+			this.draw(this.bezier.generate(this.iteration));
+			if (this.intermediate) this.drawIntermediatePoint()
+			if (this.incremental) this.draw(this.incrementalResult)
 			return;
 		}
 
-		this.bezier = new BezierDnC(point);
+		if (v == "end_edit" || v == "count_edit") {
+			this.iterationInput.changeValue(this.iteration);
+			if (this.incremental) this.incrementalGeneration();
+			return
+		}
+
 		this.iterationInput.changeValue(this.iteration);
+		if (this.incremental) this.incrementalGeneration();
 	}
 
 	drawIntermediatePoint() {
@@ -180,8 +218,8 @@ export class BezierPainterDnC extends BezierPainter {
 		const tracePoints: Point[] = [];
 		const intermediatePoints: Point[][][] = [];
 		const traverse = (lazy: LazyPoint, depth: number) => {
-			if (depth == 0) return;
-			if (depth == 1) intermediatePoints.push(lazy.getIntermediatePoint());
+			if (depth === 0) return;
+			if (depth === 1) intermediatePoints.push(lazy.getIntermediatePoint());
 			const [left, mid, right] = lazy.get();
 			traverse(left, depth - 1);
 			tracePoints.push(mid);
@@ -242,12 +280,54 @@ export class BezierPainterDnC extends BezierPainter {
 					now[nextIdx] = Point.LERP(midPrev[k], next[nextIdx], t);
 				}
 				this.draw(now);
-				if (this.intermediatePoint) this.drawIntermediatePoint();
+				if (this.intermediate) this.drawIntermediatePoint();
 				await waitFrame();
 			}
 			prev = next;
 		}
 		this.animationHandler();
+		if (this.incremental) this.incrementalGeneration();
+	}
+
+	incrementalTimerId: number;
+	incrementalResult: Point[]
+	incrementalGeneration() {
+		if (!this.bezier) return
+		clearTimeout(this.incrementalTimerId)
+		const lazyPoint = this.bezier.lazyPoint
+		const [left, right] = this.bezier.generate(0)
+
+		let absoluteMaxDepth = 25;
+		let maxDepth = this.iteration + 1
+		const fn = () => {
+			const points: Point[] = [];
+
+			points.push(left)
+			const traverse = (lazy: LazyPoint, depth: number) => {
+				if (depth === 0) return;
+
+				const [left, mid, right] = lazy.get();
+				const [_l1, leftBelow, _l2] = left.get();
+				const [_r1, rightBelow, _r2] = right.get();
+
+				if (Point.manhattanDistance(leftBelow, mid) > 0.05)
+					traverse(left, depth - 1)
+				points.push(mid)
+				if (Point.manhattanDistance(mid, rightBelow) > 0.05)
+					traverse(right, depth - 1)
+			}
+			traverse(lazyPoint, maxDepth);
+			points.push(right)
+
+			this.incrementalResult = points
+			if (lazyPoint == this.bezier.lazyPoint) {
+				if (maxDepth == absoluteMaxDepth) return
+				this.draw(points)
+				maxDepth++
+				this.incrementalTimerId = setTimeout(fn, 100) as any
+			}
+		}
+		this.incrementalTimerId = setTimeout(fn, 100) as any;
 	}
 
 	getCurrentResult(): Point[] {
