@@ -238,7 +238,7 @@ export class Canvas {
 	}
 
 	dispatchControlPointEvent(event: ControlPointEvent) {
-		if (this.benchmark.benchmarked) this.benchmark.clickHandler();
+		if (this.benchmark.benchmarked && event != "redraw") this.benchmark.clickHandler();
 		const controlPoints = this.getControlPoints();
 		const currentPainter = this.getCurrentPainter();
 		currentPainter.onControlPointEvent(event, controlPoints);

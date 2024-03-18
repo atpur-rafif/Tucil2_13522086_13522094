@@ -66,13 +66,15 @@ export class BezierPainterBF extends BezierPainter {
 	}
 
 	benchmark(controlPoints: Point[], targetPointCount: number): Promise<BenchmarkParameter> {
-		// const bezier = new BezierBFOld(controlPoints);
+		const start = performance.now()
+		const len = bezierBruteForce(controlPoints, Math.max(targetPointCount - 2, 0)).length;
+		const end = performance.now()
 
 		return Promise.resolve({
 			strategyName: "Brute Force",
-			msTime: 0,
-			overshoot: 0,
-			pointCount: 0
+			msTime: end - start,
+			overshoot: len - targetPointCount,
+			pointCount: len
 		})
 	}
 
