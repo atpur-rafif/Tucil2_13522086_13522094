@@ -84,7 +84,7 @@ export class Canvas {
 		const linePathOption = new Selection(["Off", "On"], 0, "Line Path");
 		linePathOption.onChange = (v) => {
 			this.settings.linePath = v == "On";
-			this.redraw();
+			this.dispatchControlPointEvent("edit");
 		};
 		const modeOption = new Selection(["Create and Drag", "Delete"], 0, "Mode");
 		modeOption.onChange = (v) => {
@@ -146,6 +146,13 @@ export class Canvas {
 
 		window.addEventListener("resize", this.resizeCanvas.bind(this));
 		this.resizeCanvas();
+
+		setTimeout(() => {
+			const randInt = () => 100 + Math.random() * 300;
+			for (let i = 0; i < 3; ++i) {
+				this.createControlPoint(randInt(), randInt());
+			}
+		}, 500);
 	}
 
 	drawer(point: Point[]) {

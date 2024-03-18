@@ -3,6 +3,8 @@ import { InputNumber } from "../inputNumber";
 import { Point } from "../point";
 import { createElement, styleElement, waitFrame } from "../util";
 import { BenchmarkParameter, BezierPainter } from "./base";
+import { Selection } from "../options";
+import { $ } from "../util";
 import style from "../style.module.css";
 
 type LazyPath = [LazyPoint, Point, LazyPoint];
@@ -24,6 +26,12 @@ export class LazyPoint {
 		return this.control[this.control.length - 1];
 	}
 
+	intermediatePoint: Point[][] = [];
+	getIntermediatePoint() {
+		if (!this.computed) this.get();
+		return this.intermediatePoint;
+	}
+
 	get(): LazyPath {
 		if (this.computed) return this.result;
 		const count = this.control.length;
@@ -42,10 +50,12 @@ export class LazyPoint {
 				if (j == i - 1) right.push(mid);
 				next.push(mid);
 			}
+			this.intermediatePoint.push(current);
 			current = [...next];
 			next = [];
 		}
 		right = right.reverse();
+		this.intermediatePoint.push([current[0]]);
 
 		this.computed = true;
 		this.result = [new LazyPoint(left), current[0], new LazyPoint(right)];
@@ -81,9 +91,10 @@ export class BezierPainterDnC extends BezierPainter {
 	timerId: number;
 	configEl: HTMLDivElement;
 	iteration: number = 0;
-	maxIteration: number = 8;
+	maxIteration: number = 1;
 	animateButton: HTMLElement;
 	animating: boolean;
+	intermediatePoint: boolean;
 
 	iterationInput: InputNumber;
 
@@ -108,6 +119,7 @@ export class BezierPainterDnC extends BezierPainter {
 		this.iterationInput.onChange = (value) => {
 			this.iteration = value;
 			this.draw(this.bezier.generate(this.iteration));
+			if (this.intermediatePoint) this.drawIntermediatePoint();
 		};
 		maxIteration.onChange = (value) => {
 			this.maxIteration = value;
@@ -127,6 +139,18 @@ export class BezierPainterDnC extends BezierPainter {
 		});
 		this.animateButton.addEventListener("click", this.animationHandler);
 
+		this.intermediatePoint = true;
+		const intermediatePoint = new Selection(
+			["Off", "On"],
+			1,
+			"Intermediate Point",
+		);
+		intermediatePoint.onChange = (v) => {
+			this.intermediatePoint = v == "On";
+			this.iterationInput.changeValue(this.iteration);
+		};
+
+		this.configEl.append(intermediatePoint.el);
 		this.configEl.append(iterationEl);
 		this.configEl.append(this.animateButton);
 	}
@@ -162,13 +186,56 @@ export class BezierPainterDnC extends BezierPainter {
 		this.iterationInput.changeValue(this.maxIteration);
 	}
 
+	drawIntermediatePoint() {
+		// Sorry for violating the pattern
+		const canvas = $("canvas") as HTMLCanvasElement;
+		const ctx = canvas.getContext("2d");
+
+		const tracePoints: Point[] = [];
+		const intermediatePoints: Point[][][] = [];
+		const traverse = (lazy: LazyPoint, depth: number) => {
+			if (depth == 0) return;
+			if (depth == 1) intermediatePoints.push(lazy.getIntermediatePoint());
+			const [left, mid, right] = lazy.get();
+			traverse(left, depth - 1);
+			tracePoints.push(mid);
+			traverse(right, depth - 1);
+		};
+		traverse(this.bezier.lazyPoint, this.iteration);
+
+		ctx.setLineDash([]);
+		for (const intermediatePoint of intermediatePoints) {
+			for (let i = 0; i < intermediatePoint.length; ++i) {
+				if (intermediatePoint.length == 1) continue;
+
+				const frac = 0.05 + ((i + 1) / intermediatePoint.length) * 0.95;
+				ctx.strokeStyle = `rgba(0,0,0,${frac})`;
+				ctx.lineWidth = 1;
+
+				ctx.beginPath();
+				for (const point of intermediatePoint[i]) {
+					ctx.lineTo(point.x, point.y);
+					ctx.fillRect(point.x - 1, point.y - 1, 2, 2);
+				}
+				ctx.stroke();
+			}
+		}
+
+		for (const point of tracePoints) {
+			ctx.beginPath();
+			ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI, true);
+			ctx.fill();
+		}
+	}
+
 	async animate() {
 		let prev: Point[] = this.bezier.generate(0);
 		for (let i = 0; i <= this.maxIteration; ++i) {
 			if (!this.animating) return;
 			this.iterationInput.changeDisplayValue(i);
-			const next = this.bezier.generate(i);
+			this.iteration = i;
 
+			const next = this.bezier.generate(i);
 			const midPrev: Point[] = [];
 			const now: Point[] = [];
 			for (let j = 0; j < prev.length - 1; ++j) {
@@ -179,18 +246,16 @@ export class BezierPainterDnC extends BezierPainter {
 			now.push(prev[prev.length - 1]);
 
 			const fps = 30;
-			for (let j = 0; j < fps; ++j) {
+			for (let j = 1; j <= fps; ++j) {
 				const t = j / fps;
 				for (let k = 0; k < midPrev.length; ++k) {
 					const nextIdx = 1 + 2 * k;
 					now[nextIdx] = Point.LERP(midPrev[k], next[nextIdx], t);
 				}
-
 				this.draw(now);
-
+				if (this.intermediatePoint) this.drawIntermediatePoint();
 				await waitFrame();
 			}
-
 			prev = next;
 		}
 		this.animationHandler();
