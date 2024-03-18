@@ -16,4 +16,12 @@ export class Point {
 		const y = a.y * (1 - t) + b.y * t;
 		return new Point(x, y);
 	}
+
+	static scale(a: Point, s: number) {
+		return new Point(a.x * s, a.y * s);
+	}
+
+	static add(a: Point, b: Point) {
+		return new Point(a.x + b.x, a.y + b.y);
+	}
 }

@@ -6,6 +6,7 @@ import { Point } from "./point";
 import { BezierPainterDnC } from "./bezier/divideAndConquer";
 import { BezierPainter } from "./bezier/base";
 import { Benchmark } from "./benchmark";
+import { BezierPainterBF } from "./bezier/bruteForce";
 
 type CanvasSettings = {
 	linePath: boolean;
@@ -24,7 +25,8 @@ export type ControlPointEvent =
 	| "edit"
 	| "end_edit"
 	| "count_edit"
-	| "redraw";
+	| "redraw"
+	| "reset";
 
 export class Canvas {
 	ctx: CanvasRenderingContext2D;
@@ -69,8 +71,8 @@ export class Canvas {
 		this.ctx = this.canvas.getContext("2d") as CanvasRenderingContext2D;
 		this.canvas.addEventListener("click", this.onClick.bind(this));
 
-		this.currentPainterIndex = 0;
-		this.painters = [new BezierPainterDnC()];
+		this.currentPainterIndex = 1;
+		this.painters = [new BezierPainterBF(), new BezierPainterDnC()];
 		this.painters.forEach(
 			(painter) =>
 			(painter.draw = (path) => {
@@ -110,11 +112,13 @@ export class Canvas {
 
 		const methodOption = new Selection(
 			["Brute Force", "Divide and Conquer"],
-			0,
+			1,
 			"Method",
 		);
-		methodOption.onChange = (v) =>
-			(this.settings.useDivideAndConquer = v == "Divide and Conquer");
+		methodOption.onChange = (v) => {
+			this.settings.useDivideAndConquer = v == "Divide and Conquer";
+			this.setCurrentPainter(this.settings.useDivideAndConquer ? 1 : 0);
+		}
 
 		const clearButton = createElement("button", { innerText: "🗑" });
 		clearButton.classList.add(style.canvasButton);
@@ -165,11 +169,10 @@ export class Canvas {
 
 		setTimeout(() => {
 			const randInt = () => 100 + Math.random() * 300;
-			for (let i = 0; i < 5; ++i) {
+			for (let i = 0; i < 3; ++i) {
 				this.createControlPoint(randInt(), randInt());
 			}
 		}, 500);
-
 
 		let canvasDragState = {
 			dragged: false,
@@ -245,7 +248,10 @@ export class Canvas {
 		return this.painters[this.currentPainterIndex];
 	}
 
-	setCurrentPainter() { }
+	setCurrentPainter(idx: number) {
+		this.currentPainterIndex = idx
+		this.dispatchControlPointEvent("reset")
+	}
 
 	resizeCanvas() {
 		this.canvas.width = window.innerWidth;

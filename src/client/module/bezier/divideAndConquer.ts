@@ -5,7 +5,6 @@ import { createElement, styleElement, waitFrame } from "../util";
 import { canvas as externalCanvas } from "../..";
 import { BenchmarkParameter, BezierPainter } from "./base";
 import { Selection } from "../options";
-import { $ } from "../util";
 import style from "../style.module.css";
 
 type LazyPath = [LazyPoint, Point, LazyPoint];
@@ -92,7 +91,7 @@ export class BezierPainterDnC extends BezierPainter {
 	timerId: number;
 	configEl: HTMLDivElement;
 	iteration: number = 0;
-	maxIteration: number = 1;
+	maxIteration: number = 5;
 	animateButton: HTMLElement;
 	animating: boolean;
 	intermediatePoint: boolean;
@@ -140,10 +139,10 @@ export class BezierPainterDnC extends BezierPainter {
 		});
 		this.animateButton.addEventListener("click", this.animationHandler);
 
-		this.intermediatePoint = true;
+		this.intermediatePoint = false;
 		const intermediatePoint = new Selection(
 			["Off", "On"],
-			1,
+			0,
 			"Intermediate Point",
 		);
 		intermediatePoint.onChange = (v) => {
@@ -154,12 +153,6 @@ export class BezierPainterDnC extends BezierPainter {
 		this.configEl.append(intermediatePoint.el);
 		this.configEl.append(iterationEl);
 		this.configEl.append(this.animateButton);
-	}
-
-	attach() { }
-
-	detach() {
-		this.killAnimation();
 	}
 
 	animationHandler = () => {
@@ -294,9 +287,5 @@ export class BezierPainterDnC extends BezierPainter {
 			pointCount: len,
 			strategyName: "Divide and Conquer",
 		});
-	}
-
-	killAnimation() {
-		clearTimeout(this.timerId);
 	}
 }

@@ -1,63 +1,88 @@
-import { Canvas } from "../canvas";
+import { ControlPointEvent } from "../canvas";
 import { Point } from "../point";
-import { BezierPainter } from "./base";
-import { LazyPoint } from "./divideAndConquer";
+import { createElement } from "../util";
+import { BenchmarkParameter, BezierPainter } from "./base";
 
 export class Calculator {
-	private isVisited: number[] = [];
-	private nthfactorial: number[] = [];
-	factorial(n: number) {
+	private static isVisited: number[] = [];
+	private static nthfactorial: number[] = [];
+	static factorial(n: number) {
 		if (!n) {
 			return 1;
 		}
-		else if (this.isVisited[n]) {
-			return this.nthfactorial[n];
+		else if (Calculator.isVisited[n]) {
+			return Calculator.nthfactorial[n];
 		}
 		else {
-			this.isVisited[n] = 1;
-			this.nthfactorial[n] = n * this.factorial(n - 1);
-			return this.nthfactorial[n];
+			Calculator.isVisited[n] = 1;
+			Calculator.nthfactorial[n] = n * Calculator.factorial(n - 1);
+			return Calculator.nthfactorial[n];
 		}
 	}
 
-	combination(n: number, k: number) {
-		return (this.factorial(n) / (this.factorial(k) * this.factorial(n - k)));
+	static combination(n: number, k: number) {
+		return (Calculator.factorial(n) / (Calculator.factorial(k) * Calculator.factorial(n - k)));
 	}
 
-	bernsteinPolynomial(k: number, n: number, u: number) {
-		return ((this.combination(n, k)) * (u ** k) * ((1 - u) ** (n - k)));
+	static bernsteinPolynomial(k: number, n: number, u: number) {
+		return ((Calculator.combination(n, k)) * (u ** k) * ((1 - u) ** (n - k)));
 	}
 }
-export class BezierBF {
-	calc: Calculator;
-	lazyPoint: LazyPoint;
-	constructor(point: Point[]) {
-		this.lazyPoint = new LazyPoint(point);
-	}
 
-	point(lp: LazyPoint, k: number, n: number, u: number) {
-		const p: Point = lp.control[k];
-		p.x *= this.calc.bernsteinPolynomial(k, n, u);
-		p.y *= this.calc.bernsteinPolynomial(k, n, u);
-		return p;
-	}
+function bezierBruteForce(controlPoints: Point[], iteration: number) {
+	const length = controlPoints.length
+	const coefficient = []
 
-	/*
-		n = number of points
-		iteration = number of iteration (precision)
-		k = 0,...,n
-	*/
-	solver(n: number, iteration: number, lazy: LazyPoint) {
-		const accumulator: Point[] = [];
-		for (let u = 0; u <= iteration; u++) {
-			const sum: Point = { x: 0, y: 0 };
-			for (let k = 0; k <= n; k++) {
-				let temp: Point = this.point(lazy, k, n, u / iteration);
-				sum.x += temp.x;
-				sum.y += temp.y;
-			}
-			accumulator.push(sum);
+	for (let i = 0; i < length; ++i) {
+		const tmp = [...coefficient]
+		for (let j = 1; j < i; ++j) {
+			coefficient[j] = tmp[j - 1] + tmp[j]
 		}
-		return accumulator;
+		coefficient.push(1)
+	}
+
+	const degree = length - 1
+	const points: Point[] = []
+	points.push(controlPoints[0])
+	for (let i = 1; i <= iteration; ++i) {
+		const t = i / (iteration + 1)
+		let point = new Point(0, 0)
+		for (let j = 0; j < coefficient.length; ++j) {
+			const scale = coefficient[j] * (t ** j) * ((1 - t) ** (degree - j))
+			point = Point.add(point, Point.scale(controlPoints[j], scale));
+		}
+		points.push(point)
+	}
+	points.push(controlPoints[degree])
+	return points
+}
+
+export class BezierPainterBF extends BezierPainter {
+	configEl: HTMLElement;
+
+	constructor() {
+		super()
+		this.configEl = createElement("div")
+	}
+
+	benchmark(controlPoints: Point[], targetPointCount: number): Promise<BenchmarkParameter> {
+		// const bezier = new BezierBFOld(controlPoints);
+
+		return Promise.resolve({
+			strategyName: "Brute Force",
+			msTime: 0,
+			overshoot: 0,
+			pointCount: 0
+		})
+	}
+
+	getCurrentResult(): Point[] {
+		return null as any
+	}
+
+	onControlPointEvent(event: ControlPointEvent, point: Point[]): void {
+		if (point.length <= 0) return
+		const points = bezierBruteForce(point, 10)
+		this.draw(points)
 	}
 }

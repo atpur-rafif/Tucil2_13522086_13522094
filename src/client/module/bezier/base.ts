@@ -10,8 +10,6 @@ export type BenchmarkParameter = {
 
 export abstract class BezierPainter {
 	abstract configEl: HTMLElement;
-	abstract attach(): void;
-	abstract detach(): void;
 	abstract onControlPointEvent(event: ControlPointEvent, point: Point[]): void;
 	abstract getCurrentResult(): Point[];
 	abstract benchmark(
