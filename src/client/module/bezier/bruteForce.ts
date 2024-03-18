@@ -1,33 +1,8 @@
 import { ControlPointEvent } from "../canvas";
+import { InputNumber } from "../inputNumber";
 import { Point } from "../point";
 import { createElement } from "../util";
 import { BenchmarkParameter, BezierPainter } from "./base";
-
-export class Calculator {
-	private static isVisited: number[] = [];
-	private static nthfactorial: number[] = [];
-	static factorial(n: number) {
-		if (!n) {
-			return 1;
-		}
-		else if (Calculator.isVisited[n]) {
-			return Calculator.nthfactorial[n];
-		}
-		else {
-			Calculator.isVisited[n] = 1;
-			Calculator.nthfactorial[n] = n * Calculator.factorial(n - 1);
-			return Calculator.nthfactorial[n];
-		}
-	}
-
-	static combination(n: number, k: number) {
-		return (Calculator.factorial(n) / (Calculator.factorial(k) * Calculator.factorial(n - k)));
-	}
-
-	static bernsteinPolynomial(k: number, n: number, u: number) {
-		return ((Calculator.combination(n, k)) * (u ** k) * ((1 - u) ** (n - k)));
-	}
-}
 
 function bezierBruteForce(controlPoints: Point[], iteration: number) {
 	const length = controlPoints.length
@@ -59,10 +34,20 @@ function bezierBruteForce(controlPoints: Point[], iteration: number) {
 
 export class BezierPainterBF extends BezierPainter {
 	configEl: HTMLElement;
+	iteration: number = 100;
+	controlPoints: Point[] = []
+	iterationInput: InputNumber
 
 	constructor() {
 		super()
 		this.configEl = createElement("div")
+		this.iterationInput = new InputNumber("Iteration", this.iteration, true);
+		this.iterationInput.onChange = (v) => {
+			this.iteration = v
+			const points = bezierBruteForce(this.controlPoints, v)
+			this.draw(points)
+		}
+		this.configEl.append(this.iterationInput.el)
 	}
 
 	benchmark(controlPoints: Point[], targetPointCount: number): Promise<BenchmarkParameter> {
@@ -82,9 +67,9 @@ export class BezierPainterBF extends BezierPainter {
 		return null as any
 	}
 
-	onControlPointEvent(event: ControlPointEvent, point: Point[]): void {
+	onControlPointEvent(_: ControlPointEvent, point: Point[]): void {
 		if (point.length <= 0) return
-		const points = bezierBruteForce(point, 10)
-		this.draw(points)
+		this.controlPoints = point
+		this.iterationInput.changeValue(this.iteration)
 	}
 }

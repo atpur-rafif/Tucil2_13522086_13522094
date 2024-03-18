@@ -86,7 +86,7 @@ export class Canvas {
 		this.el.append(this.benchmark.el);
 
 		this.configTray = createElement("div");
-		this.configTray.appendChild(this.getCurrentPainter().configEl);
+		this.configTray.append(...this.painters.map(p => p.configEl));
 		this.configTray.classList.add(style.canvasConfigTray);
 		this.el.appendChild(this.configTray);
 
@@ -115,6 +115,7 @@ export class Canvas {
 			1,
 			"Method",
 		);
+		this.setCurrentPainter(1)
 		methodOption.onChange = (v) => {
 			this.settings.useDivideAndConquer = v == "Divide and Conquer";
 			this.setCurrentPainter(this.settings.useDivideAndConquer ? 1 : 0);
@@ -249,7 +250,9 @@ export class Canvas {
 	}
 
 	setCurrentPainter(idx: number) {
+		this.getCurrentPainter().configEl.classList.remove(style.canvasConfigTrayItemOpened)
 		this.currentPainterIndex = idx
+		this.getCurrentPainter().configEl.classList.add(style.canvasConfigTrayItemOpened)
 		this.dispatchControlPointEvent("reset")
 	}
 

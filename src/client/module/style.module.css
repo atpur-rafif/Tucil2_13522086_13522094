@@ -95,6 +95,7 @@
 }
 
 .inputNumberContainer {
+	white-space: nowrap;
 	display: flex;
 	flex-direction: column;
 	background-color: white;
@@ -207,6 +208,20 @@
 	top: 0px;
 	right: 0px;
 	margin: 2%;
+}
+
+.canvasConfigTray>div {
+	opacity: 0;
+	transition: all 0.5s;
+	pointer-events: none;
+	position: absolute;
+	top: 0;
+	right: 0;
+}
+
+.canvasConfigTrayItemOpened {
+	opacity: 1 !important;
+	pointer-events: auto !important;
 }
 
 .canvasBenchmark {
