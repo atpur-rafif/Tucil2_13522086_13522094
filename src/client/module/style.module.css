@@ -20,21 +20,17 @@
 }
 
 .controlPoint {
-	width: 10px;
-	height: 10px;
 	background-color: black;
 	position: absolute;
 	cursor: grab;
-	transform: translate(-50%, -50%);
 	border-radius: 100%;
 	transition: border-width 0.2s;
+	transform: translate(-50%, -50%);
 	border-color: white;
 	border-style: solid;
 	border-width: 0px;
 	cursor: pointer;
 	border-color: red;
-
-
 }
 
 .controlPoint:hover {

@@ -2,6 +2,7 @@ import { ControlPointEvent } from "../canvas";
 import { InputNumber } from "../inputNumber";
 import { Point } from "../point";
 import { createElement, styleElement, waitFrame } from "../util";
+import { canvas as externalCanvas } from "../..";
 import { BenchmarkParameter, BezierPainter } from "./base";
 import { Selection } from "../options";
 import { $ } from "../util";
@@ -155,7 +156,7 @@ export class BezierPainterDnC extends BezierPainter {
 		this.configEl.append(this.animateButton);
 	}
 
-	attach() {}
+	attach() { }
 
 	detach() {
 		this.killAnimation();
@@ -176,9 +177,14 @@ export class BezierPainterDnC extends BezierPainter {
 		}
 	};
 
-	onControlPointEvent(_: ControlPointEvent, point: Point[]) {
+	onControlPointEvent(v: ControlPointEvent, point: Point[]) {
 		if (point.length <= 1) {
 			this.draw([]);
+			return;
+		}
+
+		if (v == "redraw") {
+			this.iterationInput.changeValue(this.iteration);
 			return;
 		}
 
@@ -187,9 +193,10 @@ export class BezierPainterDnC extends BezierPainter {
 	}
 
 	drawIntermediatePoint() {
-		// Sorry for violating the pattern
-		const canvas = $("canvas") as HTMLCanvasElement;
-		const ctx = canvas.getContext("2d");
+		// I am sorry for this, but I don't even care anymore
+		const canvas = externalCanvas
+		const ctx = canvas.ctx;
+		const scale = 1 / canvas.view.scale
 
 		const tracePoints: Point[] = [];
 		const intermediatePoints: Point[][][] = [];
@@ -210,12 +217,14 @@ export class BezierPainterDnC extends BezierPainter {
 
 				const frac = 0.05 + ((i + 1) / intermediatePoint.length) * 0.95;
 				ctx.strokeStyle = `rgba(0,0,0,${frac})`;
-				ctx.lineWidth = 1;
+				ctx.lineWidth = 1 * scale;
 
 				ctx.beginPath();
 				for (const point of intermediatePoint[i]) {
 					ctx.lineTo(point.x, point.y);
-					ctx.fillRect(point.x - 1, point.y - 1, 2, 2);
+					const size = 2 * scale
+					const halfSize = scale
+					ctx.fillRect(point.x - halfSize, point.y - halfSize, size, size);
 				}
 				ctx.stroke();
 			}
@@ -223,7 +232,7 @@ export class BezierPainterDnC extends BezierPainter {
 
 		for (const point of tracePoints) {
 			ctx.beginPath();
-			ctx.arc(point.x, point.y, 3, 0, 2 * Math.PI, true);
+			ctx.arc(point.x, point.y, 3 * scale, 0, 2 * Math.PI, true);
 			ctx.fill();
 		}
 	}

@@ -23,7 +23,8 @@ export type ControlPointEvent =
 	| "start_edit"
 	| "edit"
 	| "end_edit"
-	| "count_edit";
+	| "count_edit"
+	| "redraw";
 
 export class Canvas {
 	ctx: CanvasRenderingContext2D;
@@ -96,7 +97,7 @@ export class Canvas {
 		const linePathOption = new Selection(["Off", "On"], 0, "Line Path");
 		linePathOption.onChange = (v) => {
 			this.settings.linePath = v == "On";
-			this.dispatchControlPointEvent("edit");
+			this.dispatchControlPointEvent("redraw");
 		};
 		const modeOption = new Selection(["Create and Delete", "Move and Drag"], 0, "Mode");
 		modeOption.onChange = () => {
@@ -216,8 +217,12 @@ export class Canvas {
 		this.ctx.resetTransform()
 		this.ctx.translate(x, y)
 		this.ctx.scale(scale, scale)
-		this.controlPointsContainer.style.transform = `translate(${x}px, ${y}px) scale(${scale})`
-		this.dispatchControlPointEvent("edit");
+
+		this.controlPoints.forEach((controlPoint) => {
+			const { x, y } = controlPoint.position
+			controlPoint.setPosition(x, y)
+		})
+		this.dispatchControlPointEvent("redraw");
 	}
 
 	drawer(point: Point[]) {
@@ -249,11 +254,12 @@ export class Canvas {
 	}
 
 	redraw() {
+		const scale = 1 / this.view.scale
 		this.clear();
 		if (this.settings.linePath) {
 			this.ctx.beginPath();
 			this.ctx.setLineDash([5]);
-			this.ctx.lineWidth = 1;
+			this.ctx.lineWidth = 1 * scale;
 			this.ctx.strokeStyle = "gray";
 			this.getControlPoints().forEach(({ x, y }) => this.ctx.lineTo(x, y));
 			this.ctx.stroke();
@@ -261,7 +267,7 @@ export class Canvas {
 
 		this.ctx.beginPath();
 		this.ctx.setLineDash([]);
-		this.ctx.lineWidth = 2;
+		this.ctx.lineWidth = 2 * scale;
 		this.ctx.strokeStyle = "black";
 		this.bezierPath.forEach(({ x, y }) => this.ctx.lineTo(x, y));
 		this.ctx.stroke();

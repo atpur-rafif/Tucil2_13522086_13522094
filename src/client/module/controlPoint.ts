@@ -16,10 +16,6 @@ export class ControlPoint {
 
 		this.el = createElement("div", { draggable: false });
 		this.el.classList.add(style.controlPoint);
-		styleElement(this.el, {
-			left: `${this.position.x}px`,
-			top: `${this.position.y}px`,
-		});
 	}
 
 	attach() {
@@ -65,9 +61,13 @@ export class ControlPoint {
 	setPosition(x: number, y: number) {
 		this.position.x = x;
 		this.position.y = y;
+		const { x: offsetX, y: offsetY, scale } = this.canvas.view;
+		const dimension = 10
 		styleElement(this.el, {
-			left: `${this.position.x}px`,
-			top: `${this.position.y}px`,
+			width: `${dimension}px`,
+			height: `${dimension}px`,
+			left: `${(x * scale) + offsetX}px`,
+			top: `${(y * scale) + offsetY}px`,
 		});
 	}
 
@@ -75,3 +75,6 @@ export class ControlPoint {
 		return this.position;
 	}
 }
+
+
+
