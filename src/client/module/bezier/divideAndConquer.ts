@@ -108,6 +108,7 @@ export class BezierPainterDnC extends BezierPainter {
 
 		this.iterationInput = new InputNumber("Iteration", this.iteration);
 		this.iterationInput.onChange = (value) => {
+			if (!this.bezier) return
 			this.iteration = value;
 			this.draw(this.bezier.generate(this.iteration));
 			if (this.intermediatePoint) this.drawIntermediatePoint();
