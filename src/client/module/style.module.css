@@ -22,7 +22,6 @@
 .controlPoint {
 	background-color: black;
 	position: absolute;
-	cursor: grab;
 	border-radius: 100%;
 	transition: border-width 0.2s;
 	transform: translate(-50%, -50%);
@@ -49,6 +48,10 @@
 
 .controlPointMoveMode>div {
 	border-color: white;
+}
+
+.controlPointMoveMode>div:hover {
+	cursor: grab
 }
 
 .selectionContainer {

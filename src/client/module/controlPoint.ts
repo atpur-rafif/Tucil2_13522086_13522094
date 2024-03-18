@@ -32,7 +32,8 @@ export class ControlPoint {
 		this.canvas.controlPointsContainer.removeChild(this.el);
 	}
 
-	onPointerDown = () => {
+	onPointerDown = (e: MouseEvent) => {
+		if (e.buttons != 1) return
 		if (!this.canvas.settings.moveMode) {
 			this.canvas.removeControlPoint(this);
 			return;

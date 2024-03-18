@@ -109,6 +109,11 @@ export class Canvas {
 			else classlist.remove(style.controlPointMoveMode);
 			this.canvas.style.cursor = this.settings.moveMode ? "move" : "";
 		};
+		this.canvas.addEventListener("contextmenu", (e) => {
+			e.preventDefault();
+			modeOption.setSelectedByIndex(modeOption.getSelectedIndex() ? 0 : 1)
+		})
+		this.controlPointsContainer.addEventListener("contextmenu", (e) => e.preventDefault())
 
 		const methodOption = new Selection(
 			["Brute Force", "Divide and Conquer"],
@@ -163,18 +168,6 @@ export class Canvas {
 		optionContainer.appendChild(methodOption.el);
 		this.el.appendChild(optionContainer);
 
-		window.addEventListener("resize", this.resizeCanvas.bind(this));
-		this.resizeCanvas();
-
-		modeOption.setSelectedByIndex(1);
-
-		setTimeout(() => {
-			const randInt = () => 100 + Math.random() * 300;
-			for (let i = 0; i < 3; ++i) {
-				this.createControlPoint(randInt(), randInt());
-			}
-		}, 500);
-
 		let canvasDragState = {
 			dragged: false,
 			startX: 0,
@@ -212,6 +205,9 @@ export class Canvas {
 			this.view.scale = nextScale
 			this.updateView();
 		})
+
+		window.addEventListener("resize", this.resizeCanvas.bind(this));
+		this.resizeCanvas();
 	}
 
 	updateView() {
