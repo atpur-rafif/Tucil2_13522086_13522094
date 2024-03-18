@@ -164,7 +164,7 @@ export class Canvas {
 
 		setTimeout(() => {
 			const randInt = () => 100 + Math.random() * 300;
-			for (let i = 0; i < 3; ++i) {
+			for (let i = 0; i < 5; ++i) {
 				this.createControlPoint(randInt(), randInt());
 			}
 		}, 500);
@@ -175,11 +175,11 @@ export class Canvas {
 			startX: 0,
 			startY: 0
 		}
-		this.canvas.addEventListener("pointerdown", ({ x, y }) => {
+		this.canvas.addEventListener("pointerdown", (e) => {
 			if (!this.settings.moveMode) return
 			canvasDragState = {
 				dragged: true,
-				startX: x - this.view.x, startY: y - this.view.y
+				startX: e.x - this.view.x, startY: e.y - this.view.y
 			}
 		})
 		this.canvas.addEventListener("pointerup", () => canvasDragState.dragged = false)
@@ -190,15 +190,29 @@ export class Canvas {
 			this.view.y = y - startY
 			this.updateView();
 		})
-		this.canvas.addEventListener("wheel", (v) => {
-			const delta = v.deltaY < 0 ? (1 / 0.9) : 0.9
-			this.view.scale *= delta
+		this.canvas.addEventListener("wheel", (e) => {
+			// I've never fucking this stressed out for code
+			// Thanks transformation shit
+			const size = 1.1
+			const delta = e.deltaY < 0 ? size : (1 / size)
+			const { x: offsetX, y: offsetY, scale } = this.view
+			const nextScale = scale * delta
+
+			const m = 1 - (1 / delta)
+			const oX = (e.x / scale) * m
+			const oY = (e.y / scale) * m
+
+			this.view.x = offsetX * delta - (oX) * nextScale;
+			this.view.y = offsetY * delta - (oY) * nextScale;
+			this.view.scale = nextScale
 			this.updateView();
 		})
 	}
 
 	updateView() {
-		const { scale, x, y } = this.view
+		let { scale, x, y } = this.view
+		// @ts-ignore
+		window.test = this.view
 		this.ctx.resetTransform()
 		this.ctx.translate(x, y)
 		this.ctx.scale(scale, scale)
