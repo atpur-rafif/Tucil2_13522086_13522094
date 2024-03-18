@@ -5,4 +5,4 @@ import { $ } from "./module/util";
 
 const body = $("body");
 const canvas = new Canvas();
-body.appendChild(canvas.el);
+body.append(canvas.el);

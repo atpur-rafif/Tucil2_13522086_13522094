@@ -25,3 +25,6 @@ export function createElement<K extends keyof HTMLElementTagNameMap>(
 	});
 	return el;
 }
+
+export const waitFrame = (): Promise<void> =>
+	new Promise((r) => requestAnimationFrame(() => r()));

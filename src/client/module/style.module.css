@@ -72,6 +72,7 @@
 	border-color: black;
 	border-width: 0px;
 	border-radius: 0.3rem;
+	flex-grow: 1;
 }
 
 .selectionItem:hover {
@@ -89,6 +90,7 @@
 	flex-direction: row;
 	gap: 0.1rem;
 	white-space: nowrap;
+	width: 100%;
 }
 
 .inputNumberContainer {
@@ -230,4 +232,16 @@
 	display: flex;
 	flex-direction: row;
 	gap: 1rem;
+}
+
+.controlPointHide>div {
+	display: none;
+}
+
+.controlPointHide div:first-child {
+	display: block !important;
+}
+
+.controlPointHide div:last-child {
+	display: block !important;
 }

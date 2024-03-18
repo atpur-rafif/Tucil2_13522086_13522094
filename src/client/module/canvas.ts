@@ -75,10 +75,16 @@ export class Canvas {
 		this.configTray.classList.add(style.canvasConfigTray);
 		this.el.appendChild(this.configTray);
 
+		const showPointOption = new Selection(["Off", "On"], 1, "Show Point");
+		showPointOption.onChange = (v) => {
+			const classList = this.controlPointsContainer.classList;
+			if (v == "Off") classList.add(style.controlPointHide);
+			else classList.remove(style.controlPointHide);
+		};
 		const linePathOption = new Selection(["Off", "On"], 0, "Line Path");
 		linePathOption.onChange = (v) => {
 			this.settings.linePath = v == "On";
-			this.redraw();
+			this.dispatchControlPointEvent("edit");
 		};
 		const modeOption = new Selection(["Create and Drag", "Delete"], 0, "Mode");
 		modeOption.onChange = (v) => {
@@ -133,12 +139,20 @@ export class Canvas {
 		const optionContainer = createElement("div");
 		optionContainer.classList.add(style.canvasOption);
 		optionContainer.appendChild(linePathOption.el);
+		optionContainer.appendChild(showPointOption.el);
 		optionContainer.appendChild(modeOption.el);
 		optionContainer.appendChild(methodOption.el);
 		this.el.appendChild(optionContainer);
 
 		window.addEventListener("resize", this.resizeCanvas.bind(this));
 		this.resizeCanvas();
+
+		setTimeout(() => {
+			const randInt = () => 100 + Math.random() * 300;
+			for (let i = 0; i < 3; ++i) {
+				this.createControlPoint(randInt(), randInt());
+			}
+		}, 500);
 	}
 
 	drawer(point: Point[]) {
