@@ -38,7 +38,9 @@ export class InputNumber {
 			const val = parseInt(this.input.value);
 			this.changeValue(val);
 		});
-
+		this.input.addEventListener("input", function() {
+			this.value = this.value.replace(/[^0-9]/g, '')
+		})
 
 		const decEl = createElement("button", {
 			innerText: "⌄",

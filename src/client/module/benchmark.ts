@@ -20,7 +20,11 @@ export class Benchmark {
 		this.inp = createElement("input", {
 			type: "number",
 			placeholder: "Point Count Target",
+			min: "0"
 		});
+		this.inp.addEventListener("input", function() {
+			this.value = this.value.replace(/[^0-9.]/g, '')
+		})
 		this.btn = createElement("button", {
 			innerText: "Benchmark",
 		});
