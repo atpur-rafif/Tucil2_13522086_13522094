@@ -18,14 +18,6 @@ export class LazyPoint {
 		this.control = control;
 	}
 
-	getLeft() {
-		return this.control[0];
-	}
-
-	getRight() {
-		return this.control[this.control.length - 1];
-	}
-
 	intermediatePoint: Point[][] = [];
 	getIntermediatePoint() {
 		if (!this.computed) this.get();
@@ -65,8 +57,10 @@ export class LazyPoint {
 
 export class BezierDnC {
 	lazyPoint: LazyPoint;
+	point: Point[]
 	constructor(point: Point[]) {
-		this.lazyPoint = new LazyPoint(point);
+		this.point = point
+		this.lazyPoint = new LazyPoint(this.point);
 	}
 
 	static traverse(lazy: LazyPoint, depth: number, accumulator: Point[]) {
@@ -79,9 +73,9 @@ export class BezierDnC {
 
 	generate(iteration: number) {
 		const accumulator: Point[] = [];
-		accumulator.push(this.lazyPoint.getLeft());
+		accumulator.push(this.point[0]);
 		BezierDnC.traverse(this.lazyPoint, iteration, accumulator);
-		accumulator.push(this.lazyPoint.getRight());
+		accumulator.push(this.point[this.point.length - 1]);
 		return accumulator;
 	}
 }
@@ -343,11 +337,9 @@ export class BezierPainterDnC extends BezierPainter {
 	): Promise<BenchmarkParameter> {
 		const start = performance.now();
 		const bezier = new BezierDnC(controlPoints);
-		let len = 0;
-		let i = 0;
-		while (len <= targetPointCount) {
-			len = bezier.generate(i++).length;
-		}
+		let iter = 0;
+		while ((2 ** iter) + 1 < targetPointCount) ++iter;
+		const len = bezier.generate(iter).length;
 		const end = performance.now();
 
 		return Promise.resolve({
