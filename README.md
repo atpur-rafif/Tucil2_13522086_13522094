@@ -10,32 +10,29 @@
 > Institut Teknologi Bandung<br>
 > Semester IV Tahun 2023/2024
 
-
 ## Table of Contents
 * [General Info](#general-information)
 * [Requirements](#requirements)
 * [How To Run](#how-to-run)
-* [Links](#links)
-
+* [How To Develop](#how-to-develop)
 
 ## General Information
 Program ini dibuat untuk membangkitkan sebuah kurva Bézier dengan implementasi algoritma <i>divide and conquer</i> dan <i>brute force</i> sebagai algoritma pembanding.
 
-
-# Requirements
+# Tech Stack
 * [Node.js](https://nodejs.org)
 * [TypeScript](https://www.typescriptlang.org/download)
-* [chokidar](https://github.com/paulmillr/chokidar/blob/master/README.md?tab=readme-ov-file#getting-started)
-* An internet browser
-
 
 ## How To Run
-1. Build the project using `node build.cjs`
-2. Run the server with `node .`
-3. The build script will autoreload if file changed
+1. Extract folder from release 
+2. Change directory to extracted folder
+3. Run `node ./server/index.js` to run the server
+4. Open browser with link printed in the terminal
 
+There is no need for outside dependencies
 
-## Links
-- [Spesifikasi Tugas Kecil 2 Stima 2023/2024](https://docs.google.com/document/d/161qTQR5PzjQUIsoLO00A0Rp1dvsahrXY2Dk-fSmJl2o/edit).
-- [This Repository](https://github.com/atpur-rafif/Tucil2_13522086_13522094)
-- [The Report [email std]](https://docs.google.com/document/d/1BEISoFzJeDLtUnmDoOCHf0Dw84gll3zjMcjLxNpXUfA/edit)
+## How To Develop
+1. Install dependencies with `npm i`
+2. Build the project using `node build.cjs` (This script will always run to watch source folder till terminated)
+3. Run the server with `node .`
+4. The build script will autoreload if file changed
