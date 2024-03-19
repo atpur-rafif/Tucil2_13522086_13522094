@@ -185,7 +185,9 @@ export class BezierPainterDnC extends BezierPainter {
 			this.draw([]);
 			return;
 		}
-		this.bezier = new BezierDnC(point);
+		if (v != "redraw") {
+			this.bezier = new BezierDnC(point);
+		}
 
 		if (this.incremental && (v == "edit" || v == "start_edit")) {
 			this.draw(this.bezier.generate(this.iteration));
