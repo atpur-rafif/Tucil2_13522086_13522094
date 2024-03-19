@@ -90,7 +90,7 @@ export class BezierPainterDnC extends BezierPainter {
 	bezier: BezierDnC;
 	timerId: number;
 	configEl: HTMLDivElement;
-	iteration: number = 1;
+	iteration: number = 7;
 	animateButton: HTMLElement;
 	animating: boolean;
 
